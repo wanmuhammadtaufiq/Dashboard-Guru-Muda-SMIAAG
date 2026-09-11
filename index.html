@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="ms" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pemantauan & Papan Pendahulu Guru Muda</title>
+
+    <!-- FAVICON & PWA LOGO (Google Drive Direct via lh3.googleusercontent.com) -->
+    <link rel="icon" type="image/png" href="https://lh3.googleusercontent.com/d/1OQohdnlXzud5gpcmZtOI3i7x5RX6JczJ">
+    <link rel="apple-touch-icon" href="https://lh3.googleusercontent.com/d/1OQohdnlXzud5gpcmZtOI3i7x5RX6JczJ">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Guru Muda">
+    <meta name="theme-color" content="#059669">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            900: '#14532d',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.2s ease, color 0.2s ease; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .flat-border { border: 1px solid #e2e8f0; }
+        .dark .flat-border { border: 1px solid #334155; }
+
+        /* PRINT STYLES UNTUK PEMBENTANGAN / CETAK / PDF */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+            }
+            header, aside, .no-print, button, #filterSubjekDetail, #filterTahun, #filterBulan, #loginModal, #adminModal, #reportModal, #toastNotice { 
+                display: none !important; 
+            }
+            body, html { 
+                background: #ffffff !important; 
+                color: #000000 !important; 
+                padding: 0 !important;
+                margin: 0 !important;
+                font-size: 11pt !important;
+                width: 100% !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+            .dark { background: #ffffff !important; color: #000000 !important; }
+            .dark * { color: #000000 !important; }
+            .max-w-7xl { max-width: 100% !important; width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            .flat-border { border: 1px solid #cbd5e1 !important; box-shadow: none !important; }
+            .tab-content { display: block !important; }
+            canvas {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+            .print-page-break { page-break-after: always; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <!-- TOAST NOTIFICATION NOTICE (MENGGANTIKAN ALERT) -->
+    <div id="toastNotice" class="fixed bottom-5 right-5 z-50 hidden max-w-md p-4 rounded-xl shadow-xl text-xs font-bold text-white transition-all transform duration-300">
+        <div class="flex items-center space-x-2">
+            <i id="toastIcon" class="fa-solid fa-circle-info text-base"></i>
+            <span id="toastNoticeMsg"></span>
+        </div>
+    </div>
+
+    <!-- HEADER / NAVIGATION BAR -->
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-30 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Toggle Menu & Brand Title with Official Logo -->
+                <div class="flex items-center space-x-3">
+                    <!-- HAMBURGER BUTTON -->
+                    <button onclick="toggleSidebar()" class="p-2 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition flat-border" title="Buka/Tutup Menu Navigasi">
+                        <i class="fa-solid fa-bars text-lg"></i>
+                    </button>
+
+                    <!-- LOGO RASMI DASHBOARD (Google Drive directlh3 link) -->
+                    <div class="flex items-center space-x-2.5">
+                        <img src="https://lh3.googleusercontent.com/d/1OQohdnlXzud5gpcmZtOI3i7x5RX6JczJ" 
+                             alt="Logo Rasmi Guru Muda" 
+                             class="w-10 h-10 object-contain rounded-lg p-0.5 bg-white dark:bg-slate-800 flat-border shadow-sm"
+                             onerror="this.onerror=null; this.src='https://placehold.co/100x100/10b981/ffffff?text=GM';" />
+                        <div>
+                            <h1 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-tight">DASHBOARD GURU MUDA</h1>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Portal Aktiviti & Pemantauan Subjek</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Controls (Tanpa Butang Urus Subjek di sini) -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    <!-- BUTANG CETAK LAPORAN / PDF -->
+                    <button id="btnPrintPage" onclick="printDashboard()" class="no-print bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition flat-border">
+                        <i class="fa-solid fa-print text-sm text-emerald-600"></i>
+                        <span class="hidden sm:inline">Cetak / PDF</span>
+                    </button>
+
+                    <!-- LOG MASUK / PENYEGARAN DATA -->
+                    <button id="loginModalBtn" onclick="openLoginModal()" class="no-print bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-1.5 transition">
+                        <i class="fa-solid fa-right-to-bracket text-sm"></i>
+                        <span class="hidden sm:inline">Log Masuk Sesi</span>
+                    </button>
+
+                    <button onclick="loadDashboardData()" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition" title="Kemaskini Data">
+                        <i class="fa-solid fa-rotate text-sm"></i>
+                    </button>
+
+                    <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition" title="Tukar Mod Terang/Gelap">
+                        <i id="themeIcon" class="fa-solid fa-moon text-sm"></i>
+                    </button>
+
+                    <div id="userInfoDisplay" class="hidden text-xs text-right border-l pl-3 dark:border-slate-800">
+                        <div id="userEmailText" class="font-bold text-slate-800 dark:text-slate-200"></div>
+                        <button onclick="logout()" class="text-[11px] text-rose-600 dark:text-rose-400 hover:underline">Log Keluar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN BODY CONTENT -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full flex flex-col md:flex-row gap-6 relative">
+
+        <!-- SIDEBAR NAVIGATION -->
+        <aside id="sidebarNav" class="hidden w-full md:w-64 flex-shrink-0 z-20">
+            <nav class="bg-white dark:bg-slate-900 rounded-xl p-3 flat-border space-y-1.5 sticky top-20 shadow-md">
+                <div class="px-3 py-1.5 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex justify-between items-center border-b dark:border-slate-800 pb-2 mb-2">
+                    <span class="flex items-center space-x-1.5">
+                        <i class="fa-solid fa-compass text-emerald-600"></i>
+                        <span>Menu Navigasi</span>
+                    </span>
+                    <button onclick="toggleSidebar()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                
+                <button onclick="switchTab('leaderboard')" id="nav-leaderboard" class="tab-btn active-tab w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition text-left bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 font-bold">
+                    <i class="fa-solid fa-chart-pie w-5 text-center text-emerald-600"></i>
+                    <span>Dashboard Utama</span>
+                </button>
+                
+                <button onclick="switchTab('senarai')" id="nav-senarai" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i class="fa-solid fa-users w-5 text-center text-indigo-500"></i>
+                    <span>Senarai Guru Muda</span>
+                </button>
+                
+                <button onclick="switchTab('laporan')" id="nav-laporan" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i class="fa-solid fa-lightbulb w-5 text-center text-amber-500"></i>
+                    <span>Laporan</span>
+                </button>
+
+                <!-- BAHAGIAN PENTADBIRAN ADMIN (DIPINDAHKAN KE SIDEBAR) -->
+                <div id="adminNavSection" class="hidden pt-3 mt-3 border-t border-slate-200 dark:border-slate-800 space-y-1">
+                    <div class="px-3 py-1 text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center space-x-1">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <span>Kawalan Admin</span>
+                    </div>
+                    <button id="adminPanelBtn" onclick="openAdminModal()" class="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition text-left bg-indigo-50 hover:bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:hover:bg-indigo-900 dark:text-indigo-200 font-bold border border-indigo-200 dark:border-indigo-800">
+                        <i class="fa-solid fa-user-gear w-5 text-center text-indigo-600 dark:text-indigo-400"></i>
+                        <span>Urus Subjek & GM</span>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- PDPA NOTICE BANNER -->
+            <div class="mt-4 p-3 bg-slate-100 dark:bg-slate-900 rounded-xl flat-border text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                <i class="fa-solid fa-lock text-emerald-600 mr-1"></i>
+                <strong>Notis PDPA:</strong> Data peribadi diproses secara selamat mengikut polisi privasi institusi untuk tujuan pemantauan dalaman sahaja.
+            </div>
+        </aside>
+
+        <!-- MAIN DISPLAY PANELS -->
+        <main class="flex-1 w-full space-y-6">
+
+            <!-- TAB 1: DASHBOARD UTAMA -->
+            <section id="tab-content-leaderboard" class="tab-content space-y-6">
+
+                <!-- HERO DOMINANT ACTION CARD -->
+                <div class="bg-gradient-to-r from-emerald-800 via-teal-800 to-slate-900 rounded-2xl p-6 text-white flat-border shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="space-y-1 text-center sm:text-left">
+                        <span class="bg-emerald-500/30 text-emerald-200 text-[10px] font-extrabold px-2.5 py-1 rounded-full uppercase tracking-wider inline-block">Portal Sesi Guru Muda</span>
+                        <h2 class="text-xl sm:text-2xl font-black tracking-tight">Perbanyakkan Aktiviti Subjek Anda!</h2>
+                        <p class="text-xs text-slate-200 max-w-xl">
+                            Laporkan setiap sesi bimbingan Guru Muda bagi menaikkan ranking subjek anda dan memberi inspirasi kepada subjek-subjek lain.
+                        </p>
+                    </div>
+                    <!-- BUTANG UTAMA DAFTAR AKTIVITI -->
+                    <button onclick="openReportModal()" class="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 py-3.5 rounded-xl text-sm shadow-xl hover:scale-105 active:scale-95 transition flex items-center justify-center space-x-2 flex-shrink-0">
+                        <i class="fa-solid fa-circle-plus text-lg"></i>
+                        <span>DAFTAR AKTIVITI BARU</span>
+                    </button>
+                </div>
+
+                <!-- FILTER BAR (TAHUN, BULAN & DETAIL SUBJEK) -->
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-xl flat-border flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div class="flex items-center space-x-2 font-bold text-slate-700 dark:text-slate-200">
+                        <i class="fa-solid fa-filter text-emerald-600"></i>
+                        <span>Penapis Analisis:</span>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <!-- Filter Tahun -->
+                        <div class="flex items-center space-x-1">
+                            <label class="text-slate-500 font-semibold">Tahun:</label>
+                            <select id="filterTahun" onchange="renderAllViews()" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg font-semibold">
+                                <option value="ALL">Semua Tahun</option>
+                                <option value="2026" selected>2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Bulan -->
+                        <div class="flex items-center space-x-1">
+                            <label class="text-slate-500 font-semibold">Bulan:</label>
+                            <select id="filterBulan" onchange="renderAllViews()" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg font-semibold">
+                                <option value="ALL" selected>Semua Bulan</option>
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Mac</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Jun</option>
+                                <option value="07">Julai</option>
+                                <option value="08">Ogos</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Disember</option>
+                            </select>
+                        </div>
+
+                        <!-- Filter Subjek Detail Selector -->
+                        <div class="flex items-center space-x-1">
+                            <label class="text-slate-500 font-semibold">Subjek Detail:</label>
+                            <select id="filterSubjekDetail" onchange="renderSubjekDetailCard()" class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg font-semibold">
+                                <option value="ALL">Pilih Subjek...</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-xl flat-border">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Jumlah Subjek Berdaftar</span>
+                        <div class="mt-2 flex items-baseline"><span id="kpiTotalSubjek" class="text-2xl font-bold text-slate-900 dark:text-white">0</span></div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-xl flat-border">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Guru Muda Aktif</span>
+                        <div class="mt-2 flex items-baseline justify-between">
+                            <span id="kpiTotalGuruMuda" class="text-2xl font-bold text-slate-900 dark:text-white">0</span>
+                            <span class="text-xs text-slate-500"><span id="kpiBaninCount" class="text-blue-600 font-semibold">0L</span> / <span id="kpiBanatCount" class="text-pink-600 font-semibold">0P</span></span>
+                        </div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-xl flat-border">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Aktiviti Didaftarkan</span>
+                        <div class="mt-2 flex items-baseline"><span id="kpiTotalLaporan" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">0</span></div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-xl flat-border">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Subjek Juara Ranking #1</span>
+                        <div class="mt-2"><span id="kpiTopSubjekName" class="text-lg font-extrabold text-amber-600 truncate block">-</span></div>
+                    </div>
+                </div>
+
+                <!-- PODIUM SUBJEK TERATAS -->
+                <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 text-white flat-border shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-extrabold text-white flex items-center">
+                            <i class="fa-solid fa-trophy text-amber-400 mr-2"></i> Papan Pendahulu Subjek Teratas
+                        </h2>
+                        <span class="text-xs text-indigo-200">Berdasarkan Bilangan Aktiviti & Sesi</span>
+                    </div>
+                    <div id="podiumContainer" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end pt-2"></div>
+                </div>
+
+                <!-- MAIN CHART: PERBANDINGAN AKTIVITI SUBJEK -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl flat-border">
+                    <h3 class="font-bold text-slate-900 dark:text-white text-base mb-4 flex items-center">
+                        <i class="fa-solid fa-chart-bar text-emerald-600 mr-2"></i> Perbandingan Keaktifan Aktiviti Mengikut Subjek
+                    </h3>
+                    <div class="relative w-full h-72"><canvas id="chartAktivitiSubjek"></canvas></div>
+                </div>
+
+                <!-- SUBJEK DETAIL BREAKDOWN CARD -->
+                <div id="subjekDetailSection" class="bg-white dark:bg-slate-900 p-6 rounded-2xl flat-border space-y-4">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b dark:border-slate-800 pb-4 gap-2">
+                        <div>
+                            <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Analisis Terperinci Subjek</span>
+                            <h3 id="sdNamaSubjek" class="text-xl font-extrabold text-slate-900 dark:text-white">Pilih Subjek di atas untuk lihat maklumat</h3>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs text-slate-500">Ranking Subjek:</span>
+                            <span id="sdRankingBadge" class="bg-amber-100 text-amber-800 font-extrabold text-xs px-3 py-1 rounded-full border border-amber-300">-</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div class="text-xs text-slate-500 font-semibold mb-1"><i class="fa-solid fa-user-tie text-blue-500 mr-1"></i> Guru Muda Banin (Lelaki)</div>
+                            <div id="sdNamaBanin" class="font-bold text-slate-800 dark:text-slate-200 text-sm">-</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div class="text-xs text-slate-500 font-semibold mb-1"><i class="fa-solid fa-user-nurse text-pink-500 mr-1"></i> Guru Muda Banat (Perempuan)</div>
+                            <div id="sdNamaBanat" class="font-bold text-slate-800 dark:text-slate-200 text-sm">-</div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                            <div class="text-xs text-slate-500 font-semibold mb-1"><i class="fa-solid fa-list-check text-emerald-500 mr-1"></i> Jumlah Aktiviti Diselesai</div>
+                            <div id="sdTotalAktiviti" class="font-black text-emerald-600 dark:text-emerald-400 text-xl">0 Sesi</div>
+                        </div>
+                    </div>
+
+                    <!-- RECENT ACTIVITIES FOR SELECTED SUBJECT -->
+                    <div class="space-y-2 pt-2">
+                        <h4 class="font-bold text-xs text-slate-500 uppercase tracking-wider">Aktiviti & Inisiatif Terkini Subjek Ini:</h4>
+                        <div id="sdAktivitiList" class="space-y-3"></div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- TAB 2: SENARAI GURU MUDA -->
+            <section id="tab-content-senarai" class="tab-content hidden space-y-6">
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-xl flat-border flex justify-between items-center flex-wrap gap-3">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Senarai Guru Muda Subjek</h2>
+                        <p class="text-xs text-slate-500">Direktori Guru Muda Banin (Lelaki) & Banat (Perempuan) mengikut subjek</p>
+                    </div>
+                    <input type="text" id="searchGuruMuda" onkeyup="filterGuruMudaTable()" placeholder="Cari subjek/nama..." class="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg text-xs w-64">
+                </div>
+                <div class="bg-white dark:bg-slate-900 rounded-xl flat-border overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs uppercase font-semibold">
+                            <tr>
+                                <th class="px-5 py-3 w-16 text-center">Bil</th>
+                                <th class="px-5 py-3">Subjek</th>
+                                <th class="px-5 py-3">Guru Muda Banin (Lelaki)</th>
+                                <th class="px-5 py-3">Guru Muda Banat (Perempuan)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="guruMudaTableBody" class="divide-y divide-slate-200 dark:divide-slate-800"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- TAB 3: LAPORAN & INSPIRASI AKTIVITI -->
+            <section id="tab-content-laporan" class="tab-content hidden space-y-6">
+                <div class="bg-white dark:bg-slate-900 p-4 rounded-xl flat-border flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-900 dark:text-white text-base">Inspirasi & Feed Aktiviti Guru Muda</h3>
+                        <p class="text-xs text-slate-500">Lihat idea dan inisiatif aktiviti daripada Guru Muda subjek lain untuk bersaing secara sihat</p>
+                    </div>
+                    <button onclick="openReportModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition">
+                        + Tambah Aktiviti
+                    </button>
+                </div>
+                <div id="laporanListGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODAL 1: BORANG REKOD AKTIVITI -->
+    <div id="reportModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl flat-border shadow-2xl overflow-hidden my-8">
+            <div class="p-4 bg-gradient-to-r from-emerald-700 to-teal-700 text-white flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-file-circle-plus text-lg"></i>
+                    <h3 class="font-extrabold text-sm">Daftar Aktiviti Baru Guru Muda</h3>
+                </div>
+                <button onclick="closeReportModal()" class="text-white hover:text-slate-200 text-xl font-bold">&times;</button>
+            </div>
+            <form onsubmit="handleFormSubmit(event)" class="p-5 space-y-3 text-xs max-h-[80vh] overflow-y-auto">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold mb-1">Subjek *</label>
+                        <select id="formSubjek" required onchange="populateGuruMudaOptions()" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg"></select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Jenis Inisiatif *</label>
+                        <select id="formInisiatif" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg font-bold text-emerald-600 dark:text-emerald-400">
+                            <option value="Guru Muda" selected>Inisiatif Guru Muda</option>
+                            <option value="Sekolah/Guru">Inisiatif Sekolah / Guru</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Guru Muda Bertugas *</label>
+                    <select id="formGuruMuda" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg"></select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-semibold mb-1">Tarikh Pelaksanaan *</label>
+                        <input type="date" id="formTarikh" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Bil. Murid Hadir *</label>
+                        <input type="number" id="formPeserta" required placeholder="Cth: 15" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Tajuk Aktiviti / Topik *</label>
+                    <input type="text" id="formTajuk" required placeholder="Cth: Sesi Latih Tubi KBAT Tajuk Trigonometri" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg">
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Ringkasan Aktiviti & Impak Sesi</label>
+                    <textarea id="formRefleksi" rows="2" placeholder="Jelaskan aktiviti yang dijalankan dan pencapaian murid..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg"></textarea>
+                </div>
+
+                <!-- BUKTI BERGAMBAR & BAHAN PEMBENTANGAN -->
+                <div class="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl space-y-3 border border-slate-200 dark:border-slate-700">
+                    <span class="font-bold text-slate-800 dark:text-slate-200 block text-xs">
+                        <i class="fa-solid fa-paperclip text-emerald-600 mr-1"></i> Bukti Bergambar & Bahan Pembentangan
+                    </span>
+                    <div>
+                        <label class="block font-semibold mb-1 text-[11px] text-slate-500">Pautan / URL Bukti Bergambar (Google Drive / Imgur / Canva)</label>
+                        <input type="url" id="formGambarUrl" placeholder="https://drive.google.com/file/d/... atau pautan imej" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 flat-border rounded-lg text-xs">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1 text-[11px] text-slate-500">Pautan Slide Pembentangan / Poster / Bahan Infografik</label>
+                        <input type="url" id="formSlideUrl" placeholder="https://docs.google.com/presentation/d/... atau pautan Canva" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 flat-border rounded-lg text-xs">
+                    </div>
+                </div>
+
+                <div class="pt-3 border-t dark:border-slate-800 flex justify-end space-x-2">
+                    <button type="button" onclick="closeReportModal()" class="px-4 py-2 font-semibold text-slate-600 dark:text-slate-300">Batal</button>
+                    <button type="submit" id="btnSubmitForm" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-md transition">Simpan Data Aktiviti</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: LOG MASUK PENGGUNA -->
+    <div id="loginModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl flat-border shadow-2xl overflow-hidden p-6 space-y-4">
+            <div class="text-center space-y-2">
+                <img src="https://lh3.googleusercontent.com/d/1OQohdnlXzud5gpcmZtOI3i7x5RX6JczJ" 
+                     alt="Logo Guru Muda" 
+                     class="w-12 h-12 object-contain mx-auto rounded-xl p-1 bg-white flat-border shadow-sm" />
+                <h3 class="text-lg font-extrabold text-slate-900 dark:text-white">Log Masuk Sesi Guru Muda</h3>
+                <p class="text-xs text-slate-500">Masukkan emel dan kata laluan untuk pengesahan akses</p>
+            </div>
+
+            <div id="loginErrorMsg" class="hidden bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 p-3 rounded-xl text-xs font-semibold text-center"></div>
+
+            <form onsubmit="handleLoginSubmit(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Emel Pengguna *</label>
+                    <input type="email" id="loginEmail" required placeholder="admin@sekolah.edu.my" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Kata Laluan *</label>
+                    <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeLoginModal()" class="px-4 py-2 font-semibold text-slate-500">Batal</button>
+                    <button type="submit" id="btnLoginSubmit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold shadow-md transition">Log Masuk</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: URUS & TAMBAH SUBJEK (AKSES ADMIN) -->
+    <div id="adminModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl flat-border shadow-2xl overflow-hidden p-6 space-y-4">
+            <div class="flex justify-between items-center border-b dark:border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-user-gear text-indigo-600 text-lg"></i>
+                    <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Urus & Tambah Guru Muda Subjek</h3>
+                </div>
+                <button onclick="closeAdminModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+            
+            <form onsubmit="handleAdminAddSubject(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold mb-1">Nama Subjek Baharu *</label>
+                    <input type="text" id="adminNamaSubjek" required placeholder="Cth: Rekabentuk & Teknologi" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Guru Muda Banin (Lelaki)</label>
+                    <input type="text" id="adminBanin" placeholder="Nama murid lelaki..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg">
+                </div>
+                <div>
+                    <label class="block font-bold mb-1">Guru Muda Banat (Perempuan)</label>
+                    <input type="text" id="adminBanat" placeholder="Nama murid perempuan..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg">
+                </div>
+                
+                <div class="pt-3 flex justify-end space-x-2 border-t dark:border-slate-800">
+                    <button type="button" onclick="closeAdminModal()" class="px-4 py-2 font-semibold text-slate-500">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow-md transition">
+                        Tambah Subjek & Guru Muda
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ===== URL APPS SCRIPT BACKEND =====
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbweU510GvDM55Cuc7yhGHFg-3gwT3MVpvOaQF9bCl3hB2Q_LnMqohwyK4-b5zIPMJTAlQ/exec";
+
+        // Global Application State
+        let sessionToken = localStorage.getItem("gm_session_token") || null;
+        let currentUser = null;
+        let guruMudaList = [];
+        let activityReports = [];
+        let chartAktivitiInstance = null;
+
+        // INITIALIZATION ON LOAD
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            loadDashboardData();
+            
+            // Set default date in form
+            const today = new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('formTarikh');
+            if (dateInput) dateInput.value = today;
+        });
+
+        // NOTIFIKASI TOAST MESRA PENGGUNA (MENGGANTIKAN ALERT)
+        function showNotice(msg, isError = false) {
+            const toast = document.getElementById('toastNotice');
+            const toastMsg = document.getElementById('toastNoticeMsg');
+            const toastIcon = document.getElementById('toastIcon');
+            if (toast && toastMsg) {
+                toastMsg.textContent = msg;
+                if (toastIcon) {
+                    toastIcon.className = isError 
+                        ? "fa-solid fa-triangle-exclamation text-base" 
+                        : "fa-solid fa-circle-check text-base";
+                }
+                toast.className = `fixed bottom-5 right-5 z-50 p-4 rounded-xl shadow-2xl text-xs font-bold text-white transition-all transform duration-300 flex items-center space-x-2 ${isError ? 'bg-rose-600' : 'bg-emerald-600'}`;
+                toast.classList.remove('hidden');
+                setTimeout(() => { toast.classList.add('hidden'); }, 5000);
+            }
+        }
+
+        // SAFE PRINT FUNCTIONALITY (PEMBAIKAN CETAK / PDF)
+        function printDashboard() {
+            try {
+                // Tutup mana-mana modal yang terbuka sebelum cetak
+                closeReportModal();
+                closeLoginModal();
+                closeAdminModal();
+
+                // Tukar chart canvas ke imej sementara untuk memastikan ia kelihatan pada cetakan/PDF
+                const chartCanvas = document.getElementById('chartAktivitiSubjek');
+                let chartImg = null;
+
+                if (chartCanvas && chartAktivitiInstance) {
+                    try {
+                        const dataUrl = chartCanvas.toDataURL('image/png');
+                        chartImg = document.createElement('img');
+                        chartImg.id = 'tempChartPrintImg';
+                        chartImg.src = dataUrl;
+                        chartImg.className = 'w-full h-auto hidden print:block my-2 rounded-lg border border-slate-200';
+                        chartCanvas.parentNode.insertBefore(chartImg, chartCanvas);
+                        chartCanvas.classList.add('print:hidden');
+                    } catch (e) {
+                        console.warn("Imej carta tidak dapat dijana untuk cetakan:", e);
+                    }
+                }
+
+                // Beri sedikit delay untuk memastikan UI stabil sebelum cetak
+                setTimeout(() => {
+                    try {
+                        window.print();
+                    } catch (e) {
+                        console.error("Gagal mencetak secara automatik:", e);
+                        showNotice("Sila gunakan pintasan Ctrl + P (atau Cmd + P pada Mac) untuk mencetak/simpan PDF.", true);
+                    } finally {
+                        // Bersihkan imej sementara selepas proses cetak
+                        if (chartImg) {
+                            chartImg.remove();
+                            if (chartCanvas) chartCanvas.classList.remove('print:hidden');
+                        }
+                    }
+                }, 250);
+
+            } catch (e) {
+                console.error("Ralat fungsi cetak:", e);
+                showNotice("Gagal memulakan proses cetakan. Sila gunakan Ctrl + P.", true);
+            }
+        }
+
+        // SAFE HTML ESCAPING TO PREVENT STORED XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // HELPER FUNGSI UNTUK MEMASTIKAN PAUTAN BOLEH DIKLIK DENGAN PROTOKOL HTTPS/HTTP
+        function formatUrl(url) {
+            if (!url) return '';
+            url = String(url).trim();
+            if (!url) return '';
+            if (!/^https?:\/\//i.test(url)) {
+                return 'https://' + url;
+            }
+            return url;
+        }
+
+        // SIDEBAR TOGGLE LOGIC
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebarNav');
+            if (sidebar) sidebar.classList.toggle('hidden');
+        }
+
+        function openAdminModal() { document.getElementById('adminModal').classList.remove('hidden'); }
+        function closeAdminModal() { document.getElementById('adminModal').classList.add('hidden'); }
+        function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+        function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+        function openReportModal() { document.getElementById('reportModal').classList.remove('hidden'); }
+        function closeReportModal() { document.getElementById('reportModal').classList.add('hidden'); }
+
+        // API POST CALL HELPER
+        async function apiPostCall(action, extraPayload = {}) {
+            const bodyObj = { action, token: sessionToken, ...extraPayload };
+            const res = await fetch(GAS_URL, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(bodyObj)
+            });
+            return await res.json();
+        }
+
+        async function loadDashboardData() {
+            try {
+                const res = await apiPostCall("GET_INITIAL_DATA");
+                if (res.success) {
+                    guruMudaList = res.guruMudaList || [];
+                    activityReports = res.activityReports || [];
+                    currentUser = res.currentUser;
+
+                    if (currentUser && currentUser.emel) {
+                        document.getElementById("userEmailText").textContent = currentUser.emel;
+                        document.getElementById("userInfoDisplay").classList.remove("hidden");
+                        document.getElementById("loginModalBtn").classList.add("hidden");
+
+                        // Paparkan Kawalan Admin di SIDEBAR jika peranan Admin
+                        if (currentUser.role === "Admin") {
+                            const adminNavSec = document.getElementById("adminNavSection");
+                            if (adminNavSec) adminNavSec.classList.remove("hidden");
+                        }
+                    }
+
+                    populateSubjekDropdowns();
+                    renderAllViews();
+                } else {
+                    loadFallbackData();
+                }
+            } catch (err) {
+                console.warn("Menggunakan data fallback tempatan:", err);
+                loadFallbackData();
+            }
+        }
+
+        function loadFallbackData() {
+            guruMudaList = [
+                { bil: 1, subjek: "Bahasa Melayu", banin: "Ahmad Zaki bin Ramli", banat: "Nur Aina Sofeea binti Azman" },
+                { bil: 2, subjek: "Bahasa Inggeris", banin: "Muhammad Hafiz bin Rosli", banat: "Sarah Ann binti Abdullah" },
+                { bil: 3, subjek: "Matematik", banin: "Luqman Hakim bin Ismail", banat: "Siti Nurhaliza binti Hamid" },
+                { bil: 4, subjek: "Sains", banin: "Muhammad Adam bin Firdaus", banat: "Nurul Izzah binti Hassan" },
+                { bil: 5, subjek: "Pendidikan Islam", banin: "Muhammad Farhan bin Razak", banat: "Wan Maryam binti Wan Ahmad" },
+                { bil: 6, subjek: "Matematik Tambahan", banin: "Syamil Faiz bin Khairul", banat: "Nur Sabrina binti Mustaffa" }
+            ];
+            activityReports = [
+                { id: "REP-101", subjek: "Pendidikan Islam", guruMuda: "Muhammad Farhan bin Razak", inisiatif: "Guru Muda", tarikh: "2026-03-01", peserta: 18, tajuk: "Bengkel Latihan Tajwid & Hafazan", refleksi: "Murid menunjukkan penguasaan tajwid yang lebih lancar.", gambarUrl: "", slideUrl: "" },
+                { id: "REP-102", subjek: "Matematik", guruMuda: "Luqman Hakim bin Ismail", inisiatif: "Sekolah/Guru", tarikh: "2026-03-02", peserta: 22, tajuk: "Sesi KBAT Algebra & Geometri", refleksi: "Kemahiran menyelesaikan soalan aras tinggi meningkat.", gambarUrl: "", slideUrl: "" },
+                { id: "REP-103", subjek: "Bahasa Melayu", guruMuda: "Nur Aina Sofeea binti Azman", inisiatif: "Guru Muda", tarikh: "2026-03-04", peserta: 15, tajuk: "Teknik Penulisan Karangan BM", refleksi: "Murid faham format binaan pemerengganan.", gambarUrl: "", slideUrl: "" }
+            ];
+            populateSubjekDropdowns();
+            renderAllViews();
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const emel = document.getElementById("loginEmail").value.trim();
+            const password = document.getElementById("loginPassword").value;
+            const errDiv = document.getElementById("loginErrorMsg");
+
+            errDiv.classList.add("hidden");
+
+            apiPostCall("LOGIN", { emel, password }).then(res => {
+                if (res.success) {
+                    sessionToken = res.token;
+                    localStorage.setItem("gm_session_token", res.token);
+                    closeLoginModal();
+                    loadDashboardData();
+                } else {
+                    errDiv.textContent = res.message || "Log masuk gagal.";
+                    errDiv.classList.remove("hidden");
+                }
+            }).catch(() => {
+                errDiv.textContent = "Ralat pelayan semasa log masuk.";
+                errDiv.classList.remove("hidden");
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem("gm_session_token");
+            sessionToken = null;
+            currentUser = null;
+            document.getElementById("userInfoDisplay").classList.add("hidden");
+            document.getElementById("loginModalBtn").classList.remove("hidden");
+            document.getElementById("adminNavSection").classList.add("hidden");
+            showNotice("Anda telah berjaya log keluar.");
+        }
+
+        function handleAdminAddSubject(e) {
+            e.preventDefault();
+            const subjek = document.getElementById('adminNamaSubjek').value.trim();
+            const banin = document.getElementById('adminBanin').value.trim() || '-';
+            const banat = document.getElementById('adminBanat').value.trim() || '-';
+
+            if (!subjek) return;
+
+            guruMudaList.push({
+                bil: guruMudaList.length + 1,
+                subjek: subjek,
+                banin: banin,
+                banat: banat
+            });
+
+            closeAdminModal();
+            populateSubjekDropdowns();
+            renderAllViews();
+            showNotice(`Subjek "${subjek}" berjaya ditambah!`);
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btnSubmitForm');
+            btn.disabled = true;
+            btn.textContent = "Menyimpan...";
+
+            const payload = {
+                subjek: document.getElementById('formSubjek').value,
+                guruMuda: document.getElementById('formGuruMuda').value,
+                inisiatif: document.getElementById('formInisiatif').value,
+                tarikh: document.getElementById('formTarikh').value,
+                peserta: document.getElementById('formPeserta').value,
+                tajuk: document.getElementById('formTajuk').value,
+                refleksi: document.getElementById('formRefleksi').value,
+                gambarUrl: document.getElementById('formGambarUrl').value,
+                slideUrl: document.getElementById('formSlideUrl').value,
+                posterUrl: "",
+                skor: 5.0
+            };
+
+            try {
+                const res = await apiPostCall("ADD_ACTIVITY", payload);
+                if (res.success) {
+                    closeReportModal();
+                    showNotice("Aktiviti berjaya didaftarkan!");
+                    loadDashboardData();
+                } else {
+                    activityReports.push({ id: "REP-" + Date.now(), ...payload });
+                    closeReportModal();
+                    renderAllViews();
+                    showNotice("Aktiviti disimpan secara tempatan!");
+                }
+            } catch (err) {
+                activityReports.push({ id: "REP-" + Date.now(), ...payload });
+                closeReportModal();
+                renderAllViews();
+                showNotice("Aktiviti disimpan secara tempatan!");
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Simpan Data Aktiviti";
+            }
+        }
+
+        function getFilteredReports() {
+            const tahun = document.getElementById('filterTahun') ? document.getElementById('filterTahun').value : 'ALL';
+            const bulan = document.getElementById('filterBulan') ? document.getElementById('filterBulan').value : 'ALL';
+
+            return activityReports.filter(r => {
+                if (!r.tarikh) return true;
+                const dateObj = new Date(r.tarikh);
+                if (isNaN(dateObj.getTime())) return true;
+
+                const rTahun = dateObj.getFullYear().toString();
+                const rBulan = String(dateObj.getMonth() + 1).padStart(2, '0');
+
+                if (tahun !== 'ALL' && rTahun !== tahun) return false;
+                if (bulan !== 'ALL' && rBulan !== bulan) return false;
+
+                return true;
+            });
+        }
+
+        function renderAllViews() {
+            const filteredReports = getFilteredReports();
+            renderKPICards(filteredReports);
+            renderPodium(filteredReports);
+            initCharts(filteredReports);
+            renderGuruMudaTable();
+            renderLaporanGrid(filteredReports);
+            renderSubjekDetailCard();
+        }
+
+        function renderKPICards(reports) {
+            document.getElementById('kpiTotalSubjek').textContent = guruMudaList.length;
+
+            let baninCount = 0;
+            let banatCount = 0;
+            guruMudaList.forEach(g => {
+                if (g.banin && g.banin !== '-') baninCount++;
+                if (g.banat && g.banat !== '-') banatCount++;
+            });
+
+            document.getElementById('kpiTotalGuruMuda').textContent = baninCount + banatCount;
+            document.getElementById('kpiBaninCount').textContent = `${baninCount}L`;
+            document.getElementById('kpiBanatCount').textContent = `${banatCount}P`;
+            document.getElementById('kpiTotalLaporan').textContent = reports.length;
+
+            const subjekCounts = {};
+            reports.forEach(r => {
+                if (r.subjek) {
+                    subjekCounts[r.subjek] = (subjekCounts[r.subjek] || 0) + 1;
+                }
+            });
+
+            let topSubjek = "-";
+            let maxCount = 0;
+            Object.keys(subjekCounts).forEach(s => {
+                if (subjekCounts[s] > maxCount) {
+                    maxCount = subjekCounts[s];
+                    topSubjek = s;
+                }
+            });
+
+            document.getElementById('kpiTopSubjekName').textContent = topSubjek !== "-" ? `${topSubjek} (${maxCount})` : "-";
+        }
+
+        function renderPodium(reports) {
+            const container = document.getElementById('podiumContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const subjekStats = guruMudaList.map(g => {
+                const count = reports.filter(r => (r.subjek || '').toLowerCase() === (g.subjek || '').toLowerCase()).length;
+                return { subjek: g.subjek, count: count };
+            }).sort((a, b) => b.count - a.count);
+
+            const top3 = subjekStats.slice(0, 3);
+            if (top3.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-400 col-span-3 text-center">Tiada data aktiviti untuk tempoh ini.</p>`;
+                return;
+            }
+
+            const podiumOrder = [top3[1], top3[0], top3[2]];
+            const badges = [
+                { rank: "#2", color: "from-slate-300 to-slate-400 text-slate-900", height: "h-32", icon: "fa-medal text-slate-300" },
+                { rank: "#1 JUARA", color: "from-amber-400 to-amber-600 text-slate-950", height: "h-40", icon: "fa-trophy text-amber-300" },
+                { rank: "#3", color: "from-amber-700 to-amber-800 text-amber-100", height: "h-28", icon: "fa-award text-amber-600" }
+            ];
+
+            podiumOrder.forEach((item, index) => {
+                if (!item) return;
+                const b = badges[index];
+                const card = document.createElement('div');
+                card.className = `bg-gradient-to-b ${b.color} p-4 rounded-xl flex flex-col justify-between items-center text-center shadow-lg ${b.height}`;
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <i class="fa-solid ${b.icon} text-2xl"></i>
+                        <span class="block font-black text-xs uppercase tracking-wider">${b.rank}</span>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-sm truncate max-w-[120px]">${escapeHtml(item.subjek)}</h4>
+                        <span class="text-xs font-bold opacity-90">${item.count} Sesi</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderSubjekDetailCard() {
+            const detailSelect = document.getElementById('filterSubjekDetail');
+            let subjekName = detailSelect ? detailSelect.value : 'ALL';
+
+            if (subjekName === 'ALL' && guruMudaList.length > 0) {
+                subjekName = guruMudaList[0].subjek;
+            }
+
+            const item = guruMudaList.find(g => (g.subjek || '').toLowerCase() === (subjekName || '').toLowerCase());
+            if (!item) return;
+
+            const reports = getFilteredReports().filter(r => (r.subjek || '').toLowerCase() === subjekName.toLowerCase());
+            
+            const subjekStats = guruMudaList.map(g => {
+                const cnt = getFilteredReports().filter(r => (r.subjek || '').toLowerCase() === (g.subjek || '').toLowerCase()).length;
+                return { subjek: g.subjek, count: cnt };
+            }).sort((a, b) => b.count - a.count);
+
+            const rankIdx = subjekStats.findIndex(s => s.subjek.toLowerCase() === subjekName.toLowerCase()) + 1;
+
+            document.getElementById('sdNamaSubjek').textContent = item.subjek;
+            document.getElementById('sdRankingBadge').textContent = `Ranking #${rankIdx || '-'}`;
+            document.getElementById('sdNamaBanin').textContent = item.banin || '-';
+            document.getElementById('sdNamaBanat').textContent = item.banat || '-';
+            document.getElementById('sdTotalAktiviti').textContent = `${reports.length} Sesi`;
+
+            const listEl = document.getElementById('sdAktivitiList');
+            listEl.innerHTML = '';
+
+            if (reports.length === 0) {
+                listEl.innerHTML = `<div class="p-3 bg-slate-50 dark:bg-slate-800 text-xs text-slate-400 rounded-lg">Tiada aktiviti didaftarkan untuk subjek ini pada tempoh terpilih.</div>`;
+                return;
+            }
+
+            [...reports].reverse().slice(0, 3).forEach(r => {
+                const div = document.createElement('div');
+                div.className = "p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl flat-border text-xs space-y-2";
+                
+                const formattedGambar = formatUrl(r.gambarUrl);
+                const formattedSlide = formatUrl(r.slideUrl);
+
+                div.innerHTML = `
+                    <div class="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                        <span>${escapeHtml(r.tajuk)}</span>
+                        <span class="text-slate-400 font-normal">${escapeHtml(r.tarikh)}</span>
+                    </div>
+                    <div class="flex items-center space-x-2 text-slate-500 text-[11px]">
+                        <span>Guru Muda: ${escapeHtml(r.guruMuda)}</span>
+                        <span>•</span>
+                        <span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold text-[10px]">${escapeHtml(r.inisiatif || 'Guru Muda')}</span>
+                    </div>
+                    <p class="italic text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-2 rounded">"${escapeHtml(r.refleksi || 'Tiada refleksi bertulis.')}"</p>
+                    <div class="flex flex-wrap gap-2 pt-1">
+                        ${formattedGambar ? `<a href="${escapeHtml(formattedGambar)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 rounded-lg text-[11px] font-bold hover:bg-emerald-200 transition"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>Buka Gambar</span></a>` : ''}
+                        ${formattedSlide ? `<a href="${escapeHtml(formattedSlide)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 rounded-lg text-[11px] font-bold hover:bg-indigo-200 transition"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>Buka Slide / Bahan</span></a>` : ''}
+                    </div>
+                `;
+                listEl.appendChild(div);
+            });
+        }
+
+        function filterGuruMudaTable() {
+            const query = (document.getElementById('searchGuruMuda').value || '').toLowerCase().trim();
+            renderGuruMudaTable(query);
+        }
+
+        function renderGuruMudaTable(query = '') {
+            const tbody = document.getElementById('guruMudaTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            
+            const filteredList = guruMudaList.filter(item => {
+                if (!query) return true;
+                const subjek = (item.subjek || '').toLowerCase();
+                const banin = (item.banin || '').toLowerCase();
+                const banat = (item.banat || '').toLowerCase();
+                return subjek.includes(query) || banin.includes(query) || banat.includes(query);
+            });
+
+            if (filteredList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-xs text-slate-400">Tiada rekod dijumpai.</td></tr>`;
+                return;
+            }
+
+            filteredList.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">${idx + 1}</td>
+                    <td class="px-5 py-3 font-semibold text-xs">${escapeHtml(item.subjek)}</td>
+                    <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.banin)}</td>
+                    <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.banat)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderLaporanGrid(reports) {
+            const grid = document.getElementById('laporanListGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            if (reports.length === 0) {
+                grid.innerHTML = `<div class="col-span-2 text-center text-slate-400 py-8 text-xs">Tiada aktiviti didaftarkan lagi.</div>`;
+                return;
+            }
+
+            [...reports].reverse().forEach(report => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 rounded-xl flat-border p-4 space-y-3 shadow-sm";
+
+                const formattedGambar = formatUrl(report.gambarUrl);
+                const formattedSlide = formatUrl(report.slideUrl);
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="font-bold text-emerald-600">${escapeHtml(report.subjek)}</span>
+                        <span class="text-slate-400">${escapeHtml(report.tarikh)}</span>
+                    </div>
+                    <h4 class="font-bold text-sm text-slate-900 dark:text-white">${escapeHtml(report.tajuk)}</h4>
+                    <p class="text-xs text-slate-500">Guru Muda: ${escapeHtml(report.guruMuda)} | Kehadiran: ${escapeHtml(report.peserta)} Murid</p>
+                    <div class="flex items-center space-x-2">
+                        <span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold text-[10px]">${escapeHtml(report.inisiatif || 'Guru Muda')}</span>
+                    </div>
+                    <p class="text-xs italic bg-slate-50 dark:bg-slate-800 p-2.5 rounded text-slate-700 dark:text-slate-300">"${escapeHtml(report.refleksi || '-')}"</p>
+                    
+                    <!-- BUTANG PAUTAN BOLEH DIKLIK TERUS -->
+                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t dark:border-slate-800 text-xs">
+                        ${formattedGambar ? `
+                            <a href="${escapeHtml(formattedGambar)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition shadow-sm active:scale-95">
+                                <i class="fa-solid fa-image"></i>
+                                <span>Buka Bukti Gambar</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            </a>
+                        ` : '<span class="text-slate-400 text-[11px]"><i class="fa-solid fa-image-slash mr-1"></i>Tiada Gambar</span>'}
+                        
+                        ${formattedSlide ? `
+                            <a href="${escapeHtml(formattedSlide)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition shadow-sm active:scale-95">
+                                <i class="fa-solid fa-file-powerpoint"></i>
+                                <span>Buka Bahan / Slide</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                            </a>
+                        ` : '<span class="text-slate-400 text-[11px]"><i class="fa-solid fa-file-circle-xmark mr-1"></i>Tiada Bahan Slide</span>'}
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function populateSubjekDropdowns() {
+            const selectForm = document.getElementById('formSubjek');
+            const selectDetail = document.getElementById('filterSubjekDetail');
+
+            if (selectForm) selectForm.innerHTML = '<option value="">-- Pilih Subjek --</option>';
+            if (selectDetail) selectDetail.innerHTML = '<option value="ALL">Pilih Subjek untuk Analisis Detail...</option>';
+
+            guruMudaList.forEach(g => {
+                if (selectForm) {
+                    const opt = document.createElement('option');
+                    opt.value = g.subjek;
+                    opt.textContent = g.subjek;
+                    selectForm.appendChild(opt);
+                }
+
+                if (selectDetail) {
+                    const opt2 = document.createElement('option');
+                    opt2.value = g.subjek;
+                    opt2.textContent = g.subjek;
+                    selectDetail.appendChild(opt2);
+                }
+            });
+        }
+
+        function populateGuruMudaOptions() {
+            const subjekVal = document.getElementById('formSubjek').value;
+            const select = document.getElementById('formGuruMuda');
+            select.innerHTML = '<option value="">-- Pilih Guru Muda --</option>';
+            const found = guruMudaList.find(g => g.subjek === subjekVal);
+            if (found) {
+                if (found.banin && found.banin !== '-') {
+                    select.appendChild(new Option(`[Lelaki/Banin] ${found.banin}`, `${found.banin} (Banin)`));
+                }
+                if (found.banat && found.banat !== '-') {
+                    select.appendChild(new Option(`[Perempuan/Banat] ${found.banat}`, `${found.banat} (Banat)`));
+                }
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('bg-emerald-50', 'text-emerald-700', 'dark:bg-emerald-950', 'dark:text-emerald-300', 'font-bold');
+                b.classList.add('text-slate-700', 'dark:text-slate-300');
+            });
+            document.getElementById(`tab-content-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeNav) {
+                activeNav.classList.add('bg-emerald-50', 'text-emerald-700', 'dark:bg-emerald-950', 'dark:text-emerald-300', 'font-bold');
+                activeNav.classList.remove('text-slate-700', 'dark:text-slate-300');
+            }
+        }
+
+        function initCharts(reports) {
+            const ctx1 = document.getElementById('chartAktivitiSubjek');
+            if (ctx1) {
+                if (chartAktivitiInstance) chartAktivitiInstance.destroy();
+                const labels = guruMudaList.map(g => g.subjek);
+                const data = labels.map(s => reports.filter(r => (r.subjek||'').toLowerCase() === s.toLowerCase()).length);
+                chartAktivitiInstance = new Chart(ctx1, {
+                    type: 'bar',
+                    data: { labels: labels, datasets: [{ label: 'Aktiviti Didaftarkan', data: data, backgroundColor: '#10b981', borderRadius: 6 }] },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+        }
+
+        function initializeTheme() {
+            if (localStorage.getItem('gm_theme') === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('themeIcon').className = "fa-solid fa-sun text-sm text-amber-400";
+            }
+        }
+
+        function toggleTheme() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('gm_theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').className = isDark ? "fa-solid fa-sun text-sm text-amber-400" : "fa-solid fa-moon text-sm";
+        }
+    </script>
+</body>
+</html>
