@@ -178,6 +178,12 @@
                     <span>Laporan</span>
                 </button>
 
+                <!-- ITEM BANNER SIMPANAN NOTA & KERTAS SOALAN GOOGLE DRIVE -->
+                <button onclick="switchTab('nota')" id="nav-nota" class="tab-btn w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm transition text-left text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i class="fa-solid fa-folder-open w-5 text-center text-blue-500"></i>
+                    <span>Nota & Kertas Soalan</span>
+                </button>
+
                 <!-- BAHAGIAN PENTADBIRAN ADMIN (DIPINDAHKAN KE SIDEBAR) -->
                 <div id="adminNavSection" class="hidden pt-3 mt-3 border-t border-slate-200 dark:border-slate-800 space-y-1">
                     <div class="px-3 py-1 text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider flex items-center space-x-1">
@@ -374,16 +380,122 @@
 
             <!-- TAB 3: LAPORAN & INSPIRASI AKTIVITI -->
             <section id="tab-content-laporan" class="tab-content hidden space-y-6">
-                <div class="bg-white dark:bg-slate-900 p-4 rounded-xl flat-border flex justify-between items-center">
-                    <div>
-                        <h3 class="font-bold text-slate-900 dark:text-white text-base">Inspirasi & Feed Aktiviti Guru Muda</h3>
-                        <p class="text-xs text-slate-500">Lihat idea dan inisiatif aktiviti daripada Guru Muda subjek lain untuk bersaing secara sihat</p>
+                <!-- HEADER & PENAPIS LAPORAN KESELURUHAN -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl flat-border space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-list-check text-emerald-600 text-xl"></i>
+                                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Keseluruhan Laporan Aktiviti Subjek</h2>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5">Semak dan tapis laporan penuh aktiviti mengikut subjek, tahun, dan bulan tanpa had</p>
+                        </div>
+                        <button onclick="openReportModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center space-x-2 flex-shrink-0">
+                            <i class="fa-solid fa-circle-plus text-sm"></i>
+                            <span>+ Tambah Aktiviti</span>
+                        </button>
                     </div>
-                    <button onclick="openReportModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-md transition">
-                        + Tambah Aktiviti
-                    </button>
+
+                    <!-- PENAPIS PENUH (SUBJEK, TAHUN, BULAN & CARIAN) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t dark:border-slate-800 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">Cari Tajuk / Guru:</label>
+                            <div class="relative">
+                                <input type="text" id="searchLaporanInput" onkeyup="resetAndRenderLaporan()" placeholder="Cari tajuk/nama..." class="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-xl">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">Subjek:</label>
+                            <select id="filterLaporanSubjek" onchange="resetAndRenderLaporan()" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-xl font-semibold">
+                                <option value="ALL">Semua Subjek</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">Tahun:</label>
+                            <select id="filterLaporanTahun" onchange="resetAndRenderLaporan()" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-xl font-semibold">
+                                <option value="ALL">Semua Tahun</option>
+                                <option value="2026" selected>2026</option>
+                                <option value="2025">2025</option>
+                                <option value="2024">2024</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">Bulan:</label>
+                            <select id="filterLaporanBulan" onchange="resetAndRenderLaporan()" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-xl font-semibold">
+                                <option value="ALL" selected>Semua Bulan</option>
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Mac</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Jun</option>
+                                <option value="07">Julai</option>
+                                <option value="08">Ogos</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Disember</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- SENARAI KAD LAPORAN AKTIVITI -->
                 <div id="laporanListGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+
+                <!-- NAVIGASI PAGINASI (HALAMAN 1, 2, DLL) -->
+                <div id="laporanPaginationContainer" class="bg-white dark:bg-slate-900 p-4 rounded-xl flat-border flex flex-col sm:flex-row justify-between items-center gap-3 text-xs"></div>
+            </section>
+
+            <!-- TAB 4: SIMPANAN NOTA & KERTAS SOALAN GOOGLE DRIVE -->
+            <section id="tab-content-nota" class="tab-content hidden space-y-6">
+                <!-- HEADER & PENAPIS BAHAN -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl flat-border space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-folder-open text-blue-600 text-xl"></i>
+                                <h2 class="text-lg font-bold text-slate-900 dark:text-white">Simpanan Nota & Kertas Soalan Subjek</h2>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5">Pusat sumber rujukan bahan, modul KBAT, dan kertas soalan peperiksaan dari Google Drive</p>
+                        </div>
+                        <button onclick="openNotaModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center space-x-2">
+                            <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
+                            <span>+ Tambah Nota / Soalan</span>
+                        </button>
+                    </div>
+
+                    <!-- PENAPIS DAN CARIAN -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t dark:border-slate-800 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">Cari Bahan:</label>
+                            <div class="relative">
+                                <input type="text" id="searchNotaInput" onkeyup="filterNotaGrid()" placeholder="Cari tajuk/topik..." class="w-full pl-8 pr-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-xl">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">Subjek:</label>
+                            <select id="filterNotaSubjek" onchange="filterNotaGrid()" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-xl font-semibold">
+                                <option value="ALL">Semua Subjek</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">Kategori Bahan:</label>
+                            <select id="filterNotaKategori" onchange="filterNotaGrid()" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-xl font-semibold">
+                                <option value="ALL">Semua Kategori</option>
+                                <option value="Nota Ringkas">Nota Ringkas / Poket</option>
+                                <option value="Kertas Soalan">Kertas Soalan SPM / Trial</option>
+                                <option value="Skema Jawapan">Skema Jawapan</option>
+                                <option value="Modul KBAT">Modul & Latih Tubi KBAT</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SENARAI KAD BAHAN & NOTA SUBJEK -->
+                <div id="notaGridContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </section>
 
         </main>
@@ -442,11 +554,11 @@
                         <i class="fa-solid fa-paperclip text-emerald-600 mr-1"></i> Bukti Bergambar & Bahan Pembentangan
                     </span>
                     <div>
-                        <label class="block font-semibold mb-1 text-[11px] text-slate-500">Pautan / URL Bukti Bergambar Google Drive / Link Canva (Pastikan tetapan General Access ditukar kepada Anyone with the link)</label>
+                        <label class="block font-semibold mb-1 text-[11px] text-slate-500">Pautan / URL Bukti Bergambar (Google Drive / Imgur / Canva)</label>
                         <input type="url" id="formGambarUrl" placeholder="https://drive.google.com/file/d/... atau pautan imej" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 flat-border rounded-lg text-xs">
                     </div>
                     <div>
-                        <label class="block font-semibold mb-1 text-[11px] text-slate-500">Pautan Slide Pembentangan / Poster / Bahan Infografik (Pastikan tetapan General Access ditukar kepada Anyone with the link)</label>
+                        <label class="block font-semibold mb-1 text-[11px] text-slate-500">Pautan Slide Pembentangan / Poster / Bahan Infografik</label>
                         <input type="url" id="formSlideUrl" placeholder="https://docs.google.com/presentation/d/... atau pautan Canva" class="w-full px-3 py-1.5 bg-white dark:bg-slate-900 flat-border rounded-lg text-xs">
                     </div>
                 </div>
@@ -524,9 +636,63 @@
         </div>
     </div>
 
+    <!-- MODAL 4: TAMBAH NOTA & KERTAS SOALAN GOOGLE DRIVE -->
+    <div id="notaModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl flat-border shadow-2xl overflow-hidden p-6 space-y-4 my-8">
+            <div class="flex justify-between items-center border-b dark:border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-folder-plus text-blue-600 text-lg"></i>
+                    <h3 class="font-extrabold text-sm text-slate-900 dark:text-white">Tambah Nota / Kertas Soalan Drive</h3>
+                </div>
+                <button onclick="closeNotaModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+            </div>
+            
+            <form onsubmit="handleNotaSubmit(event)" class="space-y-3 text-xs">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Subjek *</label>
+                        <select id="formNotaSubjek" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg font-semibold"></select>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Kategori Bahan *</label>
+                        <select id="formNotaKategori" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg font-semibold text-blue-600 dark:text-blue-400">
+                            <option value="Nota Ringkas">Nota Ringkas / Poket</option>
+                            <option value="Kertas Soalan" selected>Kertas Soalan SPM / Trial</option>
+                            <option value="Skema Jawapan">Skema Jawapan</option>
+                            <option value="Modul KBAT">Modul & Latih Tubi KBAT</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Tajuk Bahan / Kertas Soalan *</label>
+                    <input type="text" id="formNotaTajuk" required placeholder="Cth: Kertas Percubaan SPM 2025 + Skema Jawapan" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg">
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Pautan Google Drive / PDF *</label>
+                    <input type="url" id="formNotaDriveUrl" required placeholder="https://drive.google.com/file/d/... atau pautan PDF Drive" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg">
+                    <p class="text-[10px] text-slate-400 mt-1"><i class="fa-solid fa-lock text-amber-500 mr-1"></i>Pastikan kebenaran pautan Google Drive ditetapkan kepada "Anyone with the link can view".</p>
+                </div>
+
+                <div>
+                    <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Penerangan Ringkas / Catatan Nota</label>
+                    <textarea id="formNotaPenerangan" rows="2" placeholder="Cth: Mengandungi soalan Struktur & Esei beserta skema jawapan lengkap..." class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg"></textarea>
+                </div>
+                
+                <div class="pt-3 flex justify-end space-x-2 border-t dark:border-slate-800">
+                    <button type="button" onclick="closeNotaModal()" class="px-4 py-2 font-semibold text-slate-500">Batal</button>
+                    <button type="submit" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-md transition">
+                        Simpan Bahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // ===== URL APPS SCRIPT BACKEND =====
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbweU510GvDM55Cuc7yhGHFg-3gwT3MVpvOaQF9bCl3hB2Q_LnMqohwyK4-b5zIPMJTAlQ/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbzX3NPscC5VmyIpK7fyi0ciN9MKIsTJoWDMwlPsHjMO8NH2-FjThXR7n0FH4UtokdRxlw/exec";
 
         // Global Application State
         let sessionToken = localStorage.getItem("gm_session_token") || null;
@@ -534,6 +700,52 @@
         let guruMudaList = [];
         let activityReports = [];
         let chartAktivitiInstance = null;
+        let laporanCurrentPage = 1;
+        const laporanItemsPerPage = 6;
+
+        // SENARAI SIMPANAN NOTA & KERTAS SOALAN DRIVE (DATA CONTOH AWAL)
+        let notaList = [
+            {
+                id: "NOT-101",
+                subjek: "Bahasa Melayu",
+                kategori: "Kertas Soalan",
+                tajuk: "Kertas Percubaan SPM Bahasa Melayu 1 & 2 (2025)",
+                driveUrl: "https://drive.google.com/drive/u/0/mobile/my-drive",
+                penerangan: "Kertas Soalan Percubaan Negeri beserta skema jawapan lengkap untuk latihan Guru Muda.",
+                tarikh: "2026-03-01",
+                disediakanBy: "Ahmad Zaki (GM BM)"
+            },
+            {
+                id: "NOT-102",
+                subjek: "Matematik",
+                kategori: "Modul KBAT",
+                tajuk: "Modul Pantas KBAT Algebra & Geometri SPM",
+                driveUrl: "https://drive.google.com/drive/u/0/mobile/my-drive",
+                penerangan: "Koleksi soalan KBAT popular berserta kaedah penyelesaian langkah demi langkah.",
+                tarikh: "2026-03-02",
+                disediakanBy: "Luqman Hakim (GM Matematik)"
+            },
+            {
+                id: "NOT-103",
+                subjek: "Pendidikan Islam",
+                kategori: "Nota Ringkas",
+                tajuk: "Nota Poket Himpunan Tajwid & Ayat Hafazan SPM",
+                driveUrl: "https://drive.google.com/drive/u/0/mobile/my-drive",
+                penerangan: "Ringkasan tajwid cepat bagi memudahkan sesi bimbingan kawan sebaya.",
+                tarikh: "2026-03-05",
+                disediakanBy: "Muhammad Farhan (GM P.Islam)"
+            },
+            {
+                id: "NOT-104",
+                subjek: "Sains",
+                kategori: "Skema Jawapan",
+                tajuk: "Skema Jawapan & Format Laporan Amali Sains SPM",
+                driveUrl: "https://drive.google.com/drive/u/0/mobile/my-drive",
+                penerangan: "Panduan pemarkahan amali sains serta kata kunci wajib dalam jawapan.",
+                tarikh: "2026-03-06",
+                disediakanBy: "Muhammad Adam (GM Sains)"
+            }
+        ];
 
         // INITIALIZATION ON LOAD
         window.addEventListener('DOMContentLoaded', () => {
@@ -646,6 +858,8 @@
         function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
         function openReportModal() { document.getElementById('reportModal').classList.remove('hidden'); }
         function closeReportModal() { document.getElementById('reportModal').classList.add('hidden'); }
+        function openNotaModal() { document.getElementById('notaModal').classList.remove('hidden'); }
+        function closeNotaModal() { document.getElementById('notaModal').classList.add('hidden'); }
 
         // API POST CALL HELPER
         async function apiPostCall(action, extraPayload = {}) {
@@ -824,246 +1038,461 @@
             });
         }
 
+        function renderKPICards(reports) {
+            const totalSubjek = guruMudaList.length;
+            let baninCount = 0;
+            let banatCount = 0;
+
+            guruMudaList.forEach(g => {
+                if (g.banin && g.banin !== '-' && g.banin.trim() !== '') baninCount++;
+                if (g.banat && g.banat !== '-' && g.banat.trim() !== '') banatCount++;
+            });
+
+            if (document.getElementById('kpiTotalSubjek')) document.getElementById('kpiTotalSubjek').textContent = totalSubjek;
+            if (document.getElementById('kpiTotalGuruMuda')) document.getElementById('kpiTotalGuruMuda').textContent = baninCount + banatCount;
+            if (document.getElementById('kpiBaninCount')) document.getElementById('kpiBaninCount').textContent = `${baninCount}L`;
+            if (document.getElementById('kpiBanatCount')) document.getElementById('kpiBanatCount').textContent = `${banatCount}P`;
+            if (document.getElementById('kpiTotalLaporan')) document.getElementById('kpiTotalLaporan').textContent = reports.length;
+
+            const subjectCounts = {};
+            reports.forEach(r => {
+                const s = r.subjek || 'Lain-lain';
+                subjectCounts[s] = (subjectCounts[s] || 0) + 1;
+            });
+
+            let topSubjek = '-';
+            let maxCount = 0;
+            Object.keys(subjectCounts).forEach(s => {
+                if (subjectCounts[s] > maxCount) {
+                    maxCount = subjectCounts[s];
+                    topSubjek = s;
+                }
+            });
+
+            if (document.getElementById('kpiTopSubjekName')) {
+                document.getElementById('kpiTopSubjekName').textContent = topSubjek !== '-' ? `${topSubjek} (${maxCount})` : '-';
+            }
+        }
+
+        function renderPodium(reports) {
+            const container = document.getElementById('podiumContainer');
+            if (!container) return;
+
+            const counts = {};
+            guruMudaList.forEach(g => { counts[g.subjek] = 0; });
+            reports.forEach(r => {
+                if (r.subjek) {
+                    counts[r.subjek] = (counts[r.subjek] || 0) + 1;
+                }
+            });
+
+            const sorted = Object.keys(counts)
+                .map(subjek => ({ subjek, count: counts[subjek] }))
+                .sort((a, b) => b.count - a.count);
+
+            const top1 = sorted[0] || { subjek: 'Tiada Data', count: 0 };
+            const top2 = sorted[1] || { subjek: 'Tiada Data', count: 0 };
+            const top3 = sorted[2] || { subjek: 'Tiada Data', count: 0 };
+
+            container.innerHTML = `
+                <div class="bg-slate-800/80 p-4 rounded-xl flat-border text-center flex flex-col justify-end items-center order-2 md:order-1 border-t-4 border-slate-300">
+                    <div class="w-10 h-10 rounded-full bg-slate-300 text-slate-900 font-extrabold flex items-center justify-center text-sm shadow mb-2">2</div>
+                    <h4 class="font-extrabold text-sm text-slate-200 truncate w-full">${escapeHtml(top2.subjek)}</h4>
+                    <span class="text-xs text-slate-400 font-semibold mt-1">${top2.count} Aktiviti</span>
+                </div>
+                <div class="bg-gradient-to-b from-amber-500/20 to-slate-800/90 p-5 rounded-2xl flat-border text-center flex flex-col justify-end items-center order-1 md:order-2 border-t-4 border-amber-400 shadow-xl">
+                    <i class="fa-solid fa-crown text-amber-400 text-2xl mb-1 animate-bounce"></i>
+                    <div class="w-12 h-12 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center text-base shadow-lg mb-2">1</div>
+                    <h4 class="font-extrabold text-base text-amber-300 truncate w-full">${escapeHtml(top1.subjek)}</h4>
+                    <span class="text-xs text-amber-200 font-bold mt-1 bg-amber-500/30 px-3 py-1 rounded-full">${top1.count} Aktiviti (Juara)</span>
+                </div>
+                <div class="bg-slate-800/80 p-4 rounded-xl flat-border text-center flex flex-col justify-end items-center order-3 md:order-3 border-t-4 border-amber-700">
+                    <div class="w-10 h-10 rounded-full bg-amber-700 text-amber-100 font-extrabold flex items-center justify-center text-sm shadow mb-2">3</div>
+                    <h4 class="font-extrabold text-sm text-slate-200 truncate w-full">${escapeHtml(top3.subjek)}</h4>
+                    <span class="text-xs text-slate-400 font-semibold mt-1">${top3.count} Aktiviti</span>
+                </div>
+            `;
+        }
+
+        function renderGuruMudaTable() {
+            const tbody = document.getElementById('guruMudaTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            if (guruMudaList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-slate-400">Tiada subjek / Guru Muda didaftarkan.</td></tr>`;
+                return;
+            }
+
+            guruMudaList.forEach((g, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-800/50 transition";
+                tr.innerHTML = `
+                    <td class="px-5 py-3 text-center font-bold text-slate-400">${idx + 1}</td>
+                    <td class="px-5 py-3 font-extrabold text-slate-900 dark:text-white">${escapeHtml(g.subjek)}</td>
+                    <td class="px-5 py-3 text-slate-700 dark:text-slate-300"><i class="fa-solid fa-user-tie text-blue-500 mr-1.5"></i>${escapeHtml(g.banin || '-')}</td>
+                    <td class="px-5 py-3 text-slate-700 dark:text-slate-300"><i class="fa-solid fa-user-nurse text-pink-500 mr-1.5"></i>${escapeHtml(g.banat || '-')}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterGuruMudaTable() {
+            const q = (document.getElementById('searchGuruMuda')?.value || '').toLowerCase().trim();
+            const rows = document.querySelectorAll('#guruMudaTableBody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(q) ? '' : 'none';
+            });
+        }
+
+        function resetAndRenderLaporan() {
+            laporanCurrentPage = 1;
+            renderLaporanGrid();
+        }
+
+        function renderLaporanGrid() {
+            const container = document.getElementById('laporanListGrid');
+            const paginationContainer = document.getElementById('laporanPaginationContainer');
+            if (!container) return;
+
+            const q = (document.getElementById('searchLaporanInput')?.value || '').toLowerCase().trim();
+            const subjek = document.getElementById('filterLaporanSubjek')?.value || 'ALL';
+            const tahun = document.getElementById('filterLaporanTahun')?.value || 'ALL';
+            const bulan = document.getElementById('filterLaporanBulan')?.value || 'ALL';
+
+            // TAPIS KESELURUHAN AKTIVITI MENGIKUT SUBJEK, TAHUN, BULAN & CARIAN
+            const filtered = activityReports.filter(r => {
+                if (subjek !== 'ALL' && (r.subjek || '').toLowerCase() !== subjek.toLowerCase()) return false;
+
+                if (r.tarikh) {
+                    const d = new Date(r.tarikh);
+                    if (!isNaN(d.getTime())) {
+                        const rTahun = d.getFullYear().toString();
+                        const rBulan = String(d.getMonth() + 1).padStart(2, '0');
+                        if (tahun !== 'ALL' && rTahun !== tahun) return false;
+                        if (bulan !== 'ALL' && rBulan !== bulan) return false;
+                    }
+                }
+
+                if (q) {
+                    const tajuk = (r.tajuk || '').toLowerCase();
+                    const guru = (r.guruMuda || '').toLowerCase();
+                    const refleksi = (r.refleksi || '').toLowerCase();
+                    if (!tajuk.includes(q) && !guru.includes(q) && !refleksi.includes(q)) return false;
+                }
+
+                return true;
+            });
+
+            container.innerHTML = '';
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-10 bg-white dark:bg-slate-900 rounded-2xl flat-border p-6 text-slate-400 text-xs">
+                        <i class="fa-solid fa-clipboard-list text-3xl mb-2 text-slate-300 dark:text-slate-600 block"></i>
+                        <span>Tiada aktiviti ditemui mengikut kriteria penapis Laporan semasa.</span>
+                    </div>
+                `;
+                if (paginationContainer) paginationContainer.innerHTML = '';
+                return;
+            }
+
+            // PENGIRAAN HALAMAN (PAGINASI)
+            const totalPages = Math.ceil(filtered.length / laporanItemsPerPage);
+            if (laporanCurrentPage > totalPages) laporanCurrentPage = totalPages;
+            if (laporanCurrentPage < 1) laporanCurrentPage = 1;
+
+            const startIndex = (laporanCurrentPage - 1) * laporanItemsPerPage;
+            const paginatedItems = filtered.slice(startIndex, startIndex + laporanItemsPerPage);
+
+            paginatedItems.forEach(r => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-slate-900 p-5 rounded-2xl flat-border space-y-3 shadow-sm hover:shadow-md transition flex flex-col justify-between";
+
+                const formattedGambar = formatUrl(r.gambarUrl);
+                const formattedSlide = formatUrl(r.slideUrl);
+                const isInisiatifGM = r.inisiatif === "Guru Muda";
+
+                card.innerHTML = `
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">${escapeHtml(r.subjek)}</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${isInisiatifGM ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300'}">
+                                ${escapeHtml(r.inisiatif || 'Guru Muda')}
+                            </span>
+                        </div>
+
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white leading-snug">${escapeHtml(r.tajuk)}</h4>
+
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                            <span><i class="fa-solid fa-user-check text-emerald-500 mr-1"></i>${escapeHtml(r.guruMuda)}</span>
+                            <span><i class="fa-solid fa-calendar-day text-slate-400 mr-1"></i>${escapeHtml(r.tarikh)}</span>
+                            <span><i class="fa-solid fa-users text-blue-500 mr-1"></i>${r.peserta} murid</span>
+                        </div>
+
+                        ${r.refleksi ? `
+                            <p class="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800 leading-relaxed italic">
+                                "${escapeHtml(r.refleksi)}"
+                            </p>
+                        ` : ''}
+                    </div>
+
+                    ${(formattedGambar || formattedSlide) ? `
+                        <div class="pt-3 border-t dark:border-slate-800 flex flex-wrap items-center gap-2 text-xs">
+                            ${formattedGambar ? `
+                                <a href="${escapeHtml(formattedGambar)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 rounded-lg font-bold transition flex items-center space-x-1">
+                                    <i class="fa-solid fa-image text-xs"></i>
+                                    <span>Bukti Gambar</span>
+                                </a>
+                            ` : ''}
+                            ${formattedSlide ? `
+                                <a href="${escapeHtml(formattedSlide)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 rounded-lg font-bold transition flex items-center space-x-1">
+                                    <i class="fa-solid fa-file-powerpoint text-xs"></i>
+                                    <span>Bahan Slide</span>
+                                </a>
+                            ` : ''}
+                        </div>
+                    ` : ''}
+                `;
+                container.appendChild(card);
+            });
+
+            // PAPARAN KAWALAN PAGINASI
+            if (paginationContainer) {
+                paginationContainer.innerHTML = `
+                    <span class="text-slate-500 font-semibold">
+                        Menunjukkan ${startIndex + 1} - ${Math.min(startIndex + laporanItemsPerPage, filtered.length)} daripada ${filtered.length} Aktiviti
+                    </span>
+
+                    <div class="flex items-center space-x-1.5">
+                        <button onclick="changeLaporanPage(${laporanCurrentPage - 1})" ${laporanCurrentPage === 1 ? 'disabled class="opacity-40 cursor-not-allowed px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg font-bold"' : 'class="px-3 py-1.5 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-100 rounded-lg font-bold transition"'}>
+                            <i class="fa-solid fa-chevron-left mr-1"></i> Sebelumnya
+                        </button>
+                        <span class="px-3 py-1.5 font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                            Halaman ${laporanCurrentPage} daripada ${totalPages}
+                        </span>
+                        <button onclick="changeLaporanPage(${laporanCurrentPage + 1})" ${laporanCurrentPage === totalPages ? 'disabled class="opacity-40 cursor-not-allowed px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg font-bold"' : 'class="px-3 py-1.5 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 hover:bg-emerald-100 rounded-lg font-bold transition"'}>
+                            Seterusnya <i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function changeLaporanPage(newPage) {
+            laporanCurrentPage = newPage;
+            renderLaporanGrid();
+            const laporanTab = document.getElementById('tab-content-laporan');
+            if (laporanTab) laporanTab.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderSubjekDetailCard() {
+            const selectedSubjek = document.getElementById('filterSubjekDetail')?.value || 'ALL';
+            const namaEl = document.getElementById('sdNamaSubjek');
+            const badgeEl = document.getElementById('sdRankingBadge');
+            const baninEl = document.getElementById('sdNamaBanin');
+            const banatEl = document.getElementById('sdNamaBanat');
+            const totalEl = document.getElementById('sdTotalAktiviti');
+            const listEl = document.getElementById('sdAktivitiList');
+
+            if (!namaEl || !badgeEl || !baninEl || !banatEl || !totalEl || !listEl) return;
+
+            if (selectedSubjek === 'ALL') {
+                namaEl.textContent = 'Sila pilih subjek di atas untuk melihat analisis terperinci';
+                badgeEl.textContent = '-';
+                baninEl.textContent = '-';
+                banatEl.textContent = '-';
+                totalEl.textContent = '0 Sesi';
+                listEl.innerHTML = '<p class="text-xs text-slate-400 italic">Pilih subjek daripada menu penapis untuk melihat rekod aktiviti.</p>';
+                return;
+            }
+
+            const foundGM = guruMudaList.find(g => g.subjek === selectedSubjek);
+            const subjekReports = activityReports.filter(r => (r.subjek || '').toLowerCase() === selectedSubjek.toLowerCase());
+
+            const counts = {};
+            guruMudaList.forEach(g => { counts[g.subjek] = 0; });
+            activityReports.forEach(r => {
+                if (r.subjek) counts[r.subjek] = (counts[r.subjek] || 0) + 1;
+            });
+            const sortedSubj = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+            const rankIndex = sortedSubj.indexOf(selectedSubjek);
+            const rankDisplay = rankIndex !== -1 ? `#${rankIndex + 1}` : '-';
+
+            namaEl.textContent = selectedSubjek;
+            badgeEl.textContent = rankDisplay;
+            baninEl.textContent = foundGM ? (foundGM.banin || '-') : '-';
+            banatEl.textContent = foundGM ? (foundGM.banat || '-') : '-';
+            totalEl.textContent = `${subjekReports.length} Sesi`;
+
+            if (subjekReports.length === 0) {
+                listEl.innerHTML = '<p class="text-xs text-slate-400 italic">Belum ada aktiviti direkodkan bagi subjek ini.</p>';
+                return;
+            }
+
+            listEl.innerHTML = '';
+            subjekReports.forEach(r => {
+                const item = document.createElement('div');
+                item.className = "p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl flat-border text-xs space-y-1";
+                item.innerHTML = `
+                    <div class="flex justify-between font-bold text-slate-800 dark:text-slate-200">
+                        <span>${escapeHtml(r.tajuk)}</span>
+                        <span class="text-emerald-600 dark:text-emerald-400">${escapeHtml(r.tarikh)}</span>
+                    </div>
+                    <div class="text-slate-500">Guru Muda: ${escapeHtml(r.guruMuda)} (${r.peserta} murid)</div>
+                    ${r.refleksi ? `<div class="text-slate-600 dark:text-slate-400 italic mt-1">"${escapeHtml(r.refleksi)}"</div>` : ''}
+                `;
+                listEl.appendChild(item);
+            });
+        }
+
         function renderAllViews() {
             const filteredReports = getFilteredReports();
             renderKPICards(filteredReports);
             renderPodium(filteredReports);
             initCharts(filteredReports);
             renderGuruMudaTable();
-            renderLaporanGrid(filteredReports);
+            renderLaporanGrid();
             renderSubjekDetailCard();
+            renderNotaGrid();
         }
 
-        function renderKPICards(reports) {
-            document.getElementById('kpiTotalSubjek').textContent = guruMudaList.length;
+        // FUNGSI UTAMA UNTUK RENDERING & FILTERING NOTA & KERTAS SOALAN DRIVE
+        function filterNotaGrid() {
+            const query = (document.getElementById('searchNotaInput')?.value || '').toLowerCase().trim();
+            const subjek = document.getElementById('filterNotaSubjek')?.value || 'ALL';
+            const kategori = document.getElementById('filterNotaKategori')?.value || 'ALL';
 
-            let baninCount = 0;
-            let banatCount = 0;
-            guruMudaList.forEach(g => {
-                if (g.banin && g.banin !== '-') baninCount++;
-                if (g.banat && g.banat !== '-') banatCount++;
-            });
-
-            document.getElementById('kpiTotalGuruMuda').textContent = baninCount + banatCount;
-            document.getElementById('kpiBaninCount').textContent = `${baninCount}L`;
-            document.getElementById('kpiBanatCount').textContent = `${banatCount}P`;
-            document.getElementById('kpiTotalLaporan').textContent = reports.length;
-
-            const subjekCounts = {};
-            reports.forEach(r => {
-                if (r.subjek) {
-                    subjekCounts[r.subjek] = (subjekCounts[r.subjek] || 0) + 1;
+            const filtered = notaList.filter(item => {
+                if (subjek !== 'ALL' && item.subjek.toLowerCase() !== subjek.toLowerCase()) return false;
+                if (kategori !== 'ALL' && item.kategori !== kategori) return false;
+                if (query) {
+                    const t = (item.tajuk || '').toLowerCase();
+                    const p = (item.penerangan || '').toLowerCase();
+                    const s = (item.subjek || '').toLowerCase();
+                    if (!t.includes(query) && !p.includes(query) && !s.includes(query)) return false;
                 }
+                return true;
             });
 
-            let topSubjek = "-";
-            let maxCount = 0;
-            Object.keys(subjekCounts).forEach(s => {
-                if (subjekCounts[s] > maxCount) {
-                    maxCount = subjekCounts[s];
-                    topSubjek = s;
-                }
-            });
-
-            document.getElementById('kpiTopSubjekName').textContent = topSubjek !== "-" ? `${topSubjek} (${maxCount})` : "-";
+            renderNotaGrid(filtered);
         }
 
-        function renderPodium(reports) {
-            const container = document.getElementById('podiumContainer');
+        function renderNotaGrid(listToRender = null) {
+            const container = document.getElementById('notaGridContainer');
             if (!container) return;
             container.innerHTML = '';
 
-            const subjekStats = guruMudaList.map(g => {
-                const count = reports.filter(r => (r.subjek || '').toLowerCase() === (g.subjek || '').toLowerCase()).length;
-                return { subjek: g.subjek, count: count };
-            }).sort((a, b) => b.count - a.count);
+            const items = listToRender !== null ? listToRender : notaList;
 
-            const top3 = subjekStats.slice(0, 3);
-            if (top3.length === 0) {
-                container.innerHTML = `<p class="text-xs text-slate-400 col-span-3 text-center">Tiada data aktiviti untuk tempoh ini.</p>`;
+            if (items.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-10 bg-white dark:bg-slate-900 rounded-2xl flat-border p-6 text-slate-400 text-xs">
+                        <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300 dark:text-slate-600 block"></i>
+                        <span>Tiada nota atau kertas soalan ditemui mengikut tapisan semasa.</span>
+                    </div>
+                `;
                 return;
             }
 
-            const podiumOrder = [top3[1], top3[0], top3[2]];
-            const badges = [
-                { rank: "#2", color: "from-slate-300 to-slate-400 text-slate-900", height: "h-32", icon: "fa-medal text-slate-300" },
-                { rank: "#1 JUARA", color: "from-amber-400 to-amber-600 text-slate-950", height: "h-40", icon: "fa-trophy text-amber-300" },
-                { rank: "#3", color: "from-amber-700 to-amber-800 text-amber-100", height: "h-28", icon: "fa-award text-amber-600" }
-            ];
+            const categoryBadges = {
+                "Nota Ringkas": "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
+                "Kertas Soalan": "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
+                "Skema Jawapan": "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300",
+                "Modul KBAT": "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+            };
 
-            podiumOrder.forEach((item, index) => {
-                if (!item) return;
-                const b = badges[index];
+            items.forEach(item => {
+                const formattedDrive = formatUrl(item.driveUrl);
+                const badgeClass = categoryBadges[item.kategori] || "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
+
                 const card = document.createElement('div');
-                card.className = `bg-gradient-to-b ${b.color} p-4 rounded-xl flex flex-col justify-between items-center text-center shadow-lg ${b.height}`;
+                card.className = "bg-white dark:bg-slate-900 p-4 rounded-2xl flat-border flex flex-col justify-between space-y-3 shadow-sm hover:shadow-md transition";
+
                 card.innerHTML = `
-                    <div class="space-y-1">
-                        <i class="fa-solid ${b.icon} text-2xl"></i>
-                        <span class="block font-black text-xs uppercase tracking-wider">${b.rank}</span>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">${escapeHtml(item.subjek)}</span>
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">
+                                ${escapeHtml(item.kategori)}
+                            </span>
+                        </div>
+
+                        <h4 class="font-bold text-sm text-slate-900 dark:text-white leading-snug">
+                            <i class="fa-solid fa-file-pdf text-rose-500 mr-1.5"></i>${escapeHtml(item.tajuk)}
+                        </h4>
+
+                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                            "${escapeHtml(item.penerangan || 'Tiada catatan tambahan.')}"
+                        </p>
                     </div>
-                    <div>
-                        <h4 class="font-extrabold text-sm truncate max-w-[120px]">${escapeHtml(item.subjek)}</h4>
-                        <span class="text-xs font-bold opacity-90">${item.count} Sesi</span>
+
+                    <div class="pt-2 border-t dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                        <span><i class="fa-solid fa-user-pen mr-1"></i>${escapeHtml(item.disediakanBy || 'Guru Muda')}</span>
+                        
+                        ${formattedDrive ? `
+                            <a href="${escapeHtml(formattedDrive)}" target="_blank" rel="noopener noreferrer" 
+                               class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition shadow-sm active:scale-95">
+                                <i class="fa-brands fa-google-drive text-xs"></i>
+                                <span>Buka Drive / PDF</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </a>
+                        ` : '<span class="text-rose-500 font-semibold">Pautan Tidak Sah</span>'}
                     </div>
                 `;
+
                 container.appendChild(card);
             });
         }
 
-        function renderSubjekDetailCard() {
-            const detailSelect = document.getElementById('filterSubjekDetail');
-            let subjekName = detailSelect ? detailSelect.value : 'ALL';
+        function handleNotaSubmit(e) {
+            e.preventDefault();
+            const subjek = document.getElementById('formNotaSubjek').value;
+            const kategori = document.getElementById('formNotaKategori').value;
+            const tajuk = document.getElementById('formNotaTajuk').value.trim();
+            const driveUrl = document.getElementById('formNotaDriveUrl').value.trim();
+            const penerangan = document.getElementById('formNotaPenerangan').value.trim();
 
-            if (subjekName === 'ALL' && guruMudaList.length > 0) {
-                subjekName = guruMudaList[0].subjek;
-            }
-
-            const item = guruMudaList.find(g => (g.subjek || '').toLowerCase() === (subjekName || '').toLowerCase());
-            if (!item) return;
-
-            const reports = getFilteredReports().filter(r => (r.subjek || '').toLowerCase() === subjekName.toLowerCase());
-            
-            const subjekStats = guruMudaList.map(g => {
-                const cnt = getFilteredReports().filter(r => (r.subjek || '').toLowerCase() === (g.subjek || '').toLowerCase()).length;
-                return { subjek: g.subjek, count: cnt };
-            }).sort((a, b) => b.count - a.count);
-
-            const rankIdx = subjekStats.findIndex(s => s.subjek.toLowerCase() === subjekName.toLowerCase()) + 1;
-
-            document.getElementById('sdNamaSubjek').textContent = item.subjek;
-            document.getElementById('sdRankingBadge').textContent = `Ranking #${rankIdx || '-'}`;
-            document.getElementById('sdNamaBanin').textContent = item.banin || '-';
-            document.getElementById('sdNamaBanat').textContent = item.banat || '-';
-            document.getElementById('sdTotalAktiviti').textContent = `${reports.length} Sesi`;
-
-            const listEl = document.getElementById('sdAktivitiList');
-            listEl.innerHTML = '';
-
-            if (reports.length === 0) {
-                listEl.innerHTML = `<div class="p-3 bg-slate-50 dark:bg-slate-800 text-xs text-slate-400 rounded-lg">Tiada aktiviti didaftarkan untuk subjek ini pada tempoh terpilih.</div>`;
+            if (!subjek || !tajuk || !driveUrl) {
+                showNotice("Sila lengkapkan maklumat wajib.", true);
                 return;
             }
 
-            [...reports].reverse().slice(0, 3).forEach(r => {
-                const div = document.createElement('div');
-                div.className = "p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl flat-border text-xs space-y-2";
-                
-                const formattedGambar = formatUrl(r.gambarUrl);
-                const formattedSlide = formatUrl(r.slideUrl);
+            const newNota = {
+                id: "NOT-" + Date.now(),
+                subjek: subjek,
+                kategori: kategori,
+                tajuk: tajuk,
+                driveUrl: driveUrl,
+                penerangan: penerangan,
+                tarikh: new Date().toISOString().split('T')[0],
+                disediakanBy: currentUser ? currentUser.emel : "Guru Muda"
+            };
 
-                div.innerHTML = `
-                    <div class="flex justify-between font-bold text-slate-800 dark:text-slate-200">
-                        <span>${escapeHtml(r.tajuk)}</span>
-                        <span class="text-slate-400 font-normal">${escapeHtml(r.tarikh)}</span>
-                    </div>
-                    <div class="flex items-center space-x-2 text-slate-500 text-[11px]">
-                        <span>Guru Muda: ${escapeHtml(r.guruMuda)}</span>
-                        <span>•</span>
-                        <span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-full font-semibold text-[10px]">${escapeHtml(r.inisiatif || 'Guru Muda')}</span>
-                    </div>
-                    <p class="italic text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 p-2 rounded">"${escapeHtml(r.refleksi || 'Tiada refleksi bertulis.')}"</p>
-                    <div class="flex flex-wrap gap-2 pt-1">
-                        ${formattedGambar ? `<a href="${escapeHtml(formattedGambar)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 rounded-lg text-[11px] font-bold hover:bg-emerald-200 transition"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>Buka Gambar</span></a>` : ''}
-                        ${formattedSlide ? `<a href="${escapeHtml(formattedSlide)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1 px-2.5 py-1 bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 rounded-lg text-[11px] font-bold hover:bg-indigo-200 transition"><i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i><span>Buka Slide / Bahan</span></a>` : ''}
-                    </div>
-                `;
-                listEl.appendChild(div);
-            });
-        }
+            notaList.unshift(newNota);
+            closeNotaModal();
+            filterNotaGrid();
+            showNotice(`Nota/Soalan "${tajuk}" berjaya disimpan!`);
 
-        function filterGuruMudaTable() {
-            const query = (document.getElementById('searchGuruMuda').value || '').toLowerCase().trim();
-            renderGuruMudaTable(query);
-        }
-
-        function renderGuruMudaTable(query = '') {
-            const tbody = document.getElementById('guruMudaTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            
-            const filteredList = guruMudaList.filter(item => {
-                if (!query) return true;
-                const subjek = (item.subjek || '').toLowerCase();
-                const banin = (item.banin || '').toLowerCase();
-                const banat = (item.banat || '').toLowerCase();
-                return subjek.includes(query) || banin.includes(query) || banat.includes(query);
-            });
-
-            if (filteredList.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-5 py-4 text-center text-xs text-slate-400">Tiada rekod dijumpai.</td></tr>`;
-                return;
-            }
-
-            filteredList.forEach((item, idx) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-5 py-3 text-center text-xs font-bold text-slate-400">${idx + 1}</td>
-                    <td class="px-5 py-3 font-semibold text-xs">${escapeHtml(item.subjek)}</td>
-                    <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.banin)}</td>
-                    <td class="px-5 py-3 text-xs text-slate-600 dark:text-slate-300">${escapeHtml(item.banat)}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function renderLaporanGrid(reports) {
-            const grid = document.getElementById('laporanListGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
-            
-            if (reports.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 text-center text-slate-400 py-8 text-xs">Tiada aktiviti didaftarkan lagi.</div>`;
-                return;
-            }
-
-            [...reports].reverse().forEach(report => {
-                const card = document.createElement('div');
-                card.className = "bg-white dark:bg-slate-900 rounded-xl flat-border p-4 space-y-3 shadow-sm";
-
-                const formattedGambar = formatUrl(report.gambarUrl);
-                const formattedSlide = formatUrl(report.slideUrl);
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-center text-xs">
-                        <span class="font-bold text-emerald-600">${escapeHtml(report.subjek)}</span>
-                        <span class="text-slate-400">${escapeHtml(report.tarikh)}</span>
-                    </div>
-                    <h4 class="font-bold text-sm text-slate-900 dark:text-white">${escapeHtml(report.tajuk)}</h4>
-                    <p class="text-xs text-slate-500">Guru Muda: ${escapeHtml(report.guruMuda)} | Kehadiran: ${escapeHtml(report.peserta)} Murid</p>
-                    <div class="flex items-center space-x-2">
-                        <span class="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold text-[10px]">${escapeHtml(report.inisiatif || 'Guru Muda')}</span>
-                    </div>
-                    <p class="text-xs italic bg-slate-50 dark:bg-slate-800 p-2.5 rounded text-slate-700 dark:text-slate-300">"${escapeHtml(report.refleksi || '-')}"</p>
-                    
-                    <!-- BUTANG PAUTAN BOLEH DIKLIK TERUS -->
-                    <div class="flex flex-wrap items-center gap-2 pt-2 border-t dark:border-slate-800 text-xs">
-                        ${formattedGambar ? `
-                            <a href="${escapeHtml(formattedGambar)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition shadow-sm active:scale-95">
-                                <i class="fa-solid fa-image"></i>
-                                <span>Buka Bukti Gambar</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                            </a>
-                        ` : '<span class="text-slate-400 text-[11px]"><i class="fa-solid fa-image-slash mr-1"></i>Tiada Gambar</span>'}
-                        
-                        ${formattedSlide ? `
-                            <a href="${escapeHtml(formattedSlide)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition shadow-sm active:scale-95">
-                                <i class="fa-solid fa-file-powerpoint"></i>
-                                <span>Buka Bahan / Slide</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-                            </a>
-                        ` : '<span class="text-slate-400 text-[11px]"><i class="fa-solid fa-file-circle-xmark mr-1"></i>Tiada Bahan Slide</span>'}
-                    </div>
-                `;
-                grid.appendChild(card);
-            });
+            // Reset Form
+            document.getElementById('formNotaTajuk').value = '';
+            document.getElementById('formNotaDriveUrl').value = '';
+            document.getElementById('formNotaPenerangan').value = '';
         }
 
         function populateSubjekDropdowns() {
             const selectForm = document.getElementById('formSubjek');
             const selectDetail = document.getElementById('filterSubjekDetail');
+            const selectNotaForm = document.getElementById('formNotaSubjek');
+            const selectNotaFilter = document.getElementById('filterNotaSubjek');
+            const selectLaporanFilter = document.getElementById('filterLaporanSubjek');
 
             if (selectForm) selectForm.innerHTML = '<option value="">-- Pilih Subjek --</option>';
             if (selectDetail) selectDetail.innerHTML = '<option value="ALL">Pilih Subjek untuk Analisis Detail...</option>';
+            if (selectNotaForm) selectNotaForm.innerHTML = '<option value="">-- Pilih Subjek --</option>';
+            if (selectNotaFilter) selectNotaFilter.innerHTML = '<option value="ALL">Semua Subjek</option>';
+            if (selectLaporanFilter) selectLaporanFilter.innerHTML = '<option value="ALL">Semua Subjek</option>';
 
             guruMudaList.forEach(g => {
                 if (selectForm) {
@@ -1078,6 +1507,27 @@
                     opt2.value = g.subjek;
                     opt2.textContent = g.subjek;
                     selectDetail.appendChild(opt2);
+                }
+
+                if (selectNotaForm) {
+                    const opt3 = document.createElement('option');
+                    opt3.value = g.subjek;
+                    opt3.textContent = g.subjek;
+                    selectNotaForm.appendChild(opt3);
+                }
+
+                if (selectNotaFilter) {
+                    const opt4 = document.createElement('option');
+                    opt4.value = g.subjek;
+                    opt4.textContent = g.subjek;
+                    selectNotaFilter.appendChild(opt4);
+                }
+
+                if (selectLaporanFilter) {
+                    const opt5 = document.createElement('option');
+                    opt5.value = g.subjek;
+                    opt5.textContent = g.subjek;
+                    selectLaporanFilter.appendChild(opt5);
                 }
             });
         }
