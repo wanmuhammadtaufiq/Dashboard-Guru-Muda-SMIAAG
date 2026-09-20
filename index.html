@@ -692,7 +692,7 @@
 
     <script>
         // ===== URL APPS SCRIPT BACKEND =====
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzX3NPscC5VmyIpK7fyi0ciN9MKIsTJoWDMwlPsHjMO8NH2-FjThXR7n0FH4UtokdRxlw/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxLxcwZVL61mystqMFErC0fk_3K1cSTVQovBGUbPSMIXXZRe5KTT4lT1c4SOjC719xeoQ/exec";
 
         // Global Application State
         let sessionToken = localStorage.getItem("gm_session_token") || null;
@@ -703,49 +703,8 @@
         let laporanCurrentPage = 1;
         const laporanItemsPerPage = 6;
 
-        // SENARAI SIMPANAN NOTA & KERTAS SOALAN DRIVE (DATA CONTOH AWAL)
-        let notaList = [
-            {
-                id: "NOT-101",
-                subjek: "Bahasa Melayu",
-                kategori: "Kertas Soalan",
-                tajuk: "Kertas Percubaan SPM Bahasa Melayu 1 & 2 (2025)",
-                driveUrl: "https://drive.google.com/drive/u/0/mobile/my-drive",
-                penerangan: "Kertas Soalan Percubaan Negeri beserta skema jawapan lengkap untuk latihan Guru Muda.",
-                tarikh: "2026-03-01",
-                disediakanBy: "Ahmad Zaki (GM BM)"
-            },
-            {
-                id: "NOT-102",
-                subjek: "Matematik",
-                kategori: "Modul KBAT",
-                tajuk: "Modul Pantas KBAT Algebra & Geometri SPM",
-                driveUrl: "https://drive.google.com/drive/u/0/mobile/my-drive",
-                penerangan: "Koleksi soalan KBAT popular berserta kaedah penyelesaian langkah demi langkah.",
-                tarikh: "2026-03-02",
-                disediakanBy: "Luqman Hakim (GM Matematik)"
-            },
-            {
-                id: "NOT-103",
-                subjek: "Pendidikan Islam",
-                kategori: "Nota Ringkas",
-                tajuk: "Nota Poket Himpunan Tajwid & Ayat Hafazan SPM",
-                driveUrl: "https://drive.google.com/drive/u/0/mobile/my-drive",
-                penerangan: "Ringkasan tajwid cepat bagi memudahkan sesi bimbingan kawan sebaya.",
-                tarikh: "2026-03-05",
-                disediakanBy: "Muhammad Farhan (GM P.Islam)"
-            },
-            {
-                id: "NOT-104",
-                subjek: "Sains",
-                kategori: "Skema Jawapan",
-                tajuk: "Skema Jawapan & Format Laporan Amali Sains SPM",
-                driveUrl: "https://drive.google.com/drive/u/0/mobile/my-drive",
-                penerangan: "Panduan pemarkahan amali sains serta kata kunci wajib dalam jawapan.",
-                tarikh: "2026-03-06",
-                disediakanBy: "Muhammad Adam (GM Sains)"
-            }
-        ];
+        // SENARAI SIMPANAN NOTA & KERTAS SOALAN DRIVE (Bermula Kosong)
+        let notaList = [];
 
         // INITIALIZATION ON LOAD
         window.addEventListener('DOMContentLoaded', () => {
@@ -878,6 +837,7 @@
                 if (res.success) {
                     guruMudaList = res.guruMudaList || [];
                     activityReports = res.activityReports || [];
+                    notaList = res.notaList || [];
                     currentUser = res.currentUser;
 
                     if (currentUser && currentUser.emel) {
@@ -1428,26 +1388,25 @@
                         </p>
                     </div>
 
-                    <div class="pt-2 border-t dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
-                        <span><i class="fa-solid fa-user-pen mr-1"></i>${escapeHtml(item.disediakanBy || 'Guru Muda')}</span>
-                        
-                        ${formattedDrive ? `
-                            <a href="${escapeHtml(formattedDrive)}" target="_blank" rel="noopener noreferrer" 
-                               class="inline-flex items-center space-x-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition shadow-sm active:scale-95">
-                                <i class="fa-brands fa-google-drive text-xs"></i>
-                                <span>Buka Drive / PDF</span>
-                                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                    ${formattedDrive ? `
+                        <div class="pt-3 border-t dark:border-slate-800 flex items-center justify-between text-xs">
+                            <span class="text-[11px] text-slate-400"><i class="fa-solid fa-user-circle mr-1"></i>${escapeHtml(item.disediakanBy || 'Guru Muda')}</span>
+                            <a href="${escapeHtml(formattedDrive)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded-lg font-bold transition flex items-center space-x-1">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
+                                <span>Buka Bahan / Drive</span>
                             </a>
-                        ` : '<span class="text-rose-500 font-semibold">Pautan Tidak Sah</span>'}
-                    </div>
+                        </div>
+                    ` : ''}
                 `;
-
                 container.appendChild(card);
             });
         }
 
-        function handleNotaSubmit(e) {
+        async function handleNotaSubmit(e) {
             e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
+
             const subjek = document.getElementById('formNotaSubjek').value;
             const kategori = document.getElementById('formNotaKategori').value;
             const tajuk = document.getElementById('formNotaTajuk').value.trim();
@@ -1456,11 +1415,11 @@
 
             if (!subjek || !tajuk || !driveUrl) {
                 showNotice("Sila lengkapkan maklumat wajib.", true);
+                if (btn) { btn.disabled = false; btn.textContent = "Simpan Bahan"; }
                 return;
             }
 
-            const newNota = {
-                id: "NOT-" + Date.now(),
+            const payload = {
                 subjek: subjek,
                 kategori: kategori,
                 tajuk: tajuk,
@@ -1470,15 +1429,30 @@
                 disediakanBy: currentUser ? currentUser.emel : "Guru Muda"
             };
 
-            notaList.unshift(newNota);
-            closeNotaModal();
-            filterNotaGrid();
-            showNotice(`Nota/Soalan "${tajuk}" berjaya disimpan!`);
-
-            // Reset Form
-            document.getElementById('formNotaTajuk').value = '';
-            document.getElementById('formNotaDriveUrl').value = '';
-            document.getElementById('formNotaPenerangan').value = '';
+            try {
+                const res = await apiPostCall("ADD_NOTA", payload);
+                if (res.success) {
+                    closeNotaModal();
+                    showNotice(`Nota/Soalan "${tajuk}" berjaya disimpan!`);
+                    loadDashboardData();
+                } else {
+                    notaList.unshift({ id: "NOT-" + Date.now(), ...payload });
+                    closeNotaModal();
+                    filterNotaGrid();
+                    showNotice(`Nota/Soalan "${tajuk}" berjaya disimpan tempatan!`);
+                }
+            } catch (err) {
+                notaList.unshift({ id: "NOT-" + Date.now(), ...payload });
+                closeNotaModal();
+                filterNotaGrid();
+                showNotice(`Nota/Soalan "${tajuk}" berjaya disimpan tempatan!`);
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = "Simpan Bahan"; }
+                // Reset Form
+                document.getElementById('formNotaTajuk').value = '';
+                document.getElementById('formNotaDriveUrl').value = '';
+                document.getElementById('formNotaPenerangan').value = '';
+            }
         }
 
         function populateSubjekDropdowns() {
