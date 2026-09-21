@@ -1339,7 +1339,7 @@
             renderNotaGrid();
         }
 
-        // FUNGSI UTAMA UNTUK RENDERING & FILTERING NOTA & KERTAS SOALAN DRIVE
+        // FUNGSI UTAMA UNTUK RENDERING & FILTERING NOTA & KERTAS SOALAN DRIVE (BENTUK KOTAK SUBJEK)
         function filterNotaGrid() {
             const query = (document.getElementById('searchNotaInput')?.value || '').toLowerCase().trim();
             const subjek = document.getElementById('filterNotaSubjek')?.value || 'ALL';
@@ -1371,6 +1371,7 @@
             const items = listToRender !== null ? listToRender : notaList;
 
             if (items.length === 0) {
+                container.className = "grid grid-cols-1 gap-4";
                 container.innerHTML = `
                     <div class="col-span-full text-center py-10 bg-white dark:bg-slate-900 rounded-2xl flat-border p-6 text-slate-400 text-xs">
                         <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300 dark:text-slate-600 block"></i>
@@ -1380,52 +1381,101 @@
                 return;
             }
 
+            // KELOMPOKKAN BAHAN MENGIKUT SUBJEK
+            const groupedBySubjek = {};
+            items.forEach(item => {
+                const subj = item.subjek || 'Lain-lain Subjek';
+                if (!groupedBySubjek[subj]) {
+                    groupedBySubjek[subj] = [];
+                }
+                groupedBySubjek[subj].push(item);
+            });
+
             const categoryBadges = {
-                "Nota Ringkas": "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300",
-                "Kertas Soalan": "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300",
-                "Skema Jawapan": "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300",
-                "Modul KBAT": "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                "Nota Ringkas": "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800",
+                "Kertas Soalan": "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 border-blue-200 dark:border-blue-800",
+                "Skema Jawapan": "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 border-purple-200 dark:border-purple-800",
+                "Modul KBAT": "bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-200 dark:border-amber-800"
             };
 
-            items.forEach(item => {
-                const formattedDrive = formatUrl(item.driveUrl);
-                const badgeClass = categoryBadges[item.kategori] || "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
+            // TUKAR SUSUNAN BEKAS UTAMA KEPADA SUSUNAN KOTAK SUBJEK
+            container.className = "space-y-6";
 
-                const card = document.createElement('div');
-                card.className = "bg-white dark:bg-slate-900 p-4 rounded-2xl flat-border flex flex-col justify-between space-y-3 shadow-sm hover:shadow-md transition";
+            Object.keys(groupedBySubjek).forEach(subjName => {
+                const subjekItems = groupedBySubjek[subjName];
+                
+                // BEKAS KOTAK SUBJEK (SUBJECT CONTAINER BOX)
+                const subjectBox = document.createElement('div');
+                subjectBox.className = "bg-white dark:bg-slate-900 p-5 rounded-2xl flat-border shadow-sm space-y-4 transition";
 
-                card.innerHTML = `
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between text-xs">
-                            <div class="flex items-center space-x-1.5">
-                                <span class="font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">${escapeHtml(item.subjek)}</span>
-                                <span class="bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 px-2 py-0.5 rounded-md font-bold text-[10px] border border-indigo-200/50 dark:border-indigo-800/50">${escapeHtml(item.tingkatan || 'Tingkatan 5')}</span>
-                            </div>
-                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">
-                                ${escapeHtml(item.kategori)}
-                            </span>
+                // TAJUK / HEADER KOTAK SUBJEK
+                const headerDiv = document.createElement('div');
+                headerDiv.className = "flex items-center justify-between border-b dark:border-slate-800 pb-3";
+                headerDiv.innerHTML = `
+                    <div class="flex items-center space-x-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold flat-border">
+                            <i class="fa-solid fa-book-bookmark text-base"></i>
                         </div>
-
-                        <h4 class="font-bold text-sm text-slate-900 dark:text-white leading-snug">
-                            <i class="fa-solid fa-file-pdf text-rose-500 mr-1.5"></i>${escapeHtml(item.tajuk)}
-                        </h4>
-
-                        <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                            "${escapeHtml(item.penerangan || 'Tiada catatan tambahan.')}"
-                        </p>
+                        <div>
+                            <h3 class="font-extrabold text-base text-slate-900 dark:text-white">${escapeHtml(subjName)}</h3>
+                            <p class="text-[11px] text-slate-500">Koleksi simpanan bahan rujukan & kertas soalan</p>
+                        </div>
                     </div>
-
-                    ${formattedDrive ? `
-                        <div class="pt-3 border-t dark:border-slate-800 flex items-center justify-between text-xs">
-                            <span class="text-[11px] text-slate-400"><i class="fa-solid fa-user-circle mr-1"></i>${escapeHtml(item.disediakanBy || 'Guru Muda')}</span>
-                            <a href="${escapeHtml(formattedDrive)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 rounded-lg font-bold transition flex items-center space-x-1">
-                                <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i>
-                                <span>Buka Bahan / Drive</span>
-                            </a>
-                        </div>
-                    ` : ''}
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center space-x-1">
+                        <i class="fa-solid fa-folder-open text-[11px]"></i>
+                        <span>${subjekItems.length} Bahan</span>
+                    </span>
                 `;
-                container.appendChild(card);
+                subjectBox.appendChild(headerDiv);
+
+                // GRID KAD BAHAN DALAM KOTAK SUBJEK
+                const itemsGrid = document.createElement('div');
+                itemsGrid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5";
+
+                subjekItems.forEach(item => {
+                    const formattedDrive = formatUrl(item.driveUrl);
+                    const badgeClass = categoryBadges[item.kategori] || "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
+
+                    const card = document.createElement('div');
+                    card.className = "bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col justify-between space-y-3 hover:border-blue-400 dark:hover:border-blue-500 transition shadow-xs";
+
+                    card.innerHTML = `
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-xs gap-1">
+                                <span class="bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300 px-2 py-0.5 rounded-md font-extrabold text-[10px] border border-indigo-200/60 dark:border-indigo-800/60">
+                                    ${escapeHtml(item.tingkatan || 'Tingkatan 5')}
+                                </span>
+                                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
+                                    ${escapeHtml(item.kategori)}
+                                </span>
+                            </div>
+
+                            <h4 class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-snug">
+                                <i class="fa-solid fa-file-pdf text-rose-500 mr-1.5"></i>${escapeHtml(item.tajuk)}
+                            </h4>
+
+                            <p class="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed italic bg-white dark:bg-slate-900/80 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                                "${escapeHtml(item.penerangan || 'Tiada catatan tambahan.')}"
+                            </p>
+                        </div>
+
+                        ${formattedDrive ? `
+                            <div class="pt-2.5 border-t border-slate-200 dark:border-slate-700/80 flex items-center justify-between text-xs gap-2">
+                                <span class="text-[10px] text-slate-400 truncate max-w-[120px]" title="${escapeHtml(item.disediakanBy || 'Guru Muda')}">
+                                    <i class="fa-solid fa-user-circle mr-1"></i>${escapeHtml(item.disediakanBy || 'Guru Muda')}
+                                </span>
+                                <a href="${escapeHtml(formattedDrive)}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs transition flex items-center space-x-1 shadow-xs flex-shrink-0">
+                                    <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                                    <span>Buka Drive</span>
+                                </a>
+                            </div>
+                        ` : ''}
+                    `;
+                    itemsGrid.appendChild(card);
+                });
+
+                subjectBox.appendChild(itemsGrid);
+                container.appendChild(subjectBox);
             });
         }
 
