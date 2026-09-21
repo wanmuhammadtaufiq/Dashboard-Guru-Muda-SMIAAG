@@ -467,7 +467,7 @@
                     </div>
 
                     <!-- PENAPIS DAN CARIAN -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t dark:border-slate-800 text-xs">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t dark:border-slate-800 text-xs">
                         <div>
                             <label class="block font-semibold text-slate-500 mb-1">Cari Bahan:</label>
                             <div class="relative">
@@ -479,6 +479,17 @@
                             <label class="block font-semibold text-slate-500 mb-1">Subjek:</label>
                             <select id="filterNotaSubjek" onchange="filterNotaGrid()" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-xl font-semibold">
                                 <option value="ALL">Semua Subjek</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-500 mb-1">Tingkatan:</label>
+                            <select id="filterNotaTingkatan" onchange="filterNotaGrid()" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-xl font-semibold">
+                                <option value="ALL">Semua Tingkatan</option>
+                                <option value="Tingkatan 1">Tingkatan 1</option>
+                                <option value="Tingkatan 2">Tingkatan 2</option>
+                                <option value="Tingkatan 3">Tingkatan 3</option>
+                                <option value="Tingkatan 4">Tingkatan 4</option>
+                                <option value="Tingkatan 5">Tingkatan 5</option>
                             </select>
                         </div>
                         <div>
@@ -648,10 +659,20 @@
             </div>
             
             <form onsubmit="handleNotaSubmit(event)" class="space-y-3 text-xs">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div>
                         <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Subjek *</label>
                         <select id="formNotaSubjek" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg font-semibold"></select>
+                    </div>
+                    <div>
+                        <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Tingkatan *</label>
+                        <select id="formNotaTingkatan" required class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 flat-border rounded-lg font-semibold text-indigo-600 dark:text-indigo-400">
+                            <option value="Tingkatan 1">Tingkatan 1</option>
+                            <option value="Tingkatan 2">Tingkatan 2</option>
+                            <option value="Tingkatan 3">Tingkatan 3</option>
+                            <option value="Tingkatan 4">Tingkatan 4</option>
+                            <option value="Tingkatan 5" selected>Tingkatan 5</option>
+                        </select>
                     </div>
                     <div>
                         <label class="block font-bold mb-1 text-slate-700 dark:text-slate-300">Kategori Bahan *</label>
@@ -692,7 +713,7 @@
 
     <script>
         // ===== URL APPS SCRIPT BACKEND =====
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbxLxcwZVL61mystqMFErC0fk_3K1cSTVQovBGUbPSMIXXZRe5KTT4lT1c4SOjC719xeoQ/exec";
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbwRikvClfdSe4mW__3xFZREeV20DpWujzmf0jsDIckDjdUz52WZigh38z5-OUntv9oB-g/exec";
 
         // Global Application State
         let sessionToken = localStorage.getItem("gm_session_token") || null;
@@ -1322,16 +1343,19 @@
         function filterNotaGrid() {
             const query = (document.getElementById('searchNotaInput')?.value || '').toLowerCase().trim();
             const subjek = document.getElementById('filterNotaSubjek')?.value || 'ALL';
+            const tingkatan = document.getElementById('filterNotaTingkatan')?.value || 'ALL';
             const kategori = document.getElementById('filterNotaKategori')?.value || 'ALL';
 
             const filtered = notaList.filter(item => {
-                if (subjek !== 'ALL' && item.subjek.toLowerCase() !== subjek.toLowerCase()) return false;
+                if (subjek !== 'ALL' && (item.subjek || '').toLowerCase() !== subjek.toLowerCase()) return false;
+                if (tingkatan !== 'ALL' && item.tingkatan !== tingkatan) return false;
                 if (kategori !== 'ALL' && item.kategori !== kategori) return false;
                 if (query) {
                     const t = (item.tajuk || '').toLowerCase();
                     const p = (item.penerangan || '').toLowerCase();
                     const s = (item.subjek || '').toLowerCase();
-                    if (!t.includes(query) && !p.includes(query) && !s.includes(query)) return false;
+                    const tg = (item.tingkatan || '').toLowerCase();
+                    if (!t.includes(query) && !p.includes(query) && !s.includes(query) && !tg.includes(query)) return false;
                 }
                 return true;
             });
@@ -1373,7 +1397,10 @@
                 card.innerHTML = `
                     <div class="space-y-2">
                         <div class="flex items-center justify-between text-xs">
-                            <span class="font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">${escapeHtml(item.subjek)}</span>
+                            <div class="flex items-center space-x-1.5">
+                                <span class="font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-wider">${escapeHtml(item.subjek)}</span>
+                                <span class="bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 px-2 py-0.5 rounded-md font-bold text-[10px] border border-indigo-200/50 dark:border-indigo-800/50">${escapeHtml(item.tingkatan || 'Tingkatan 5')}</span>
+                            </div>
                             <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">
                                 ${escapeHtml(item.kategori)}
                             </span>
@@ -1408,12 +1435,13 @@
             if (btn) { btn.disabled = true; btn.textContent = "Menyimpan..."; }
 
             const subjek = document.getElementById('formNotaSubjek').value;
+            const tingkatan = document.getElementById('formNotaTingkatan').value;
             const kategori = document.getElementById('formNotaKategori').value;
             const tajuk = document.getElementById('formNotaTajuk').value.trim();
             const driveUrl = document.getElementById('formNotaDriveUrl').value.trim();
             const penerangan = document.getElementById('formNotaPenerangan').value.trim();
 
-            if (!subjek || !tajuk || !driveUrl) {
+            if (!subjek || !tingkatan || !tajuk || !driveUrl) {
                 showNotice("Sila lengkapkan maklumat wajib.", true);
                 if (btn) { btn.disabled = false; btn.textContent = "Simpan Bahan"; }
                 return;
@@ -1421,6 +1449,7 @@
 
             const payload = {
                 subjek: subjek,
+                tingkatan: tingkatan,
                 kategori: kategori,
                 tajuk: tajuk,
                 driveUrl: driveUrl,
